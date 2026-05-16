@@ -58,6 +58,37 @@ extern "C" {
     ) -> i32;
 
     pub fn nl_named_entities_free(array: *mut c_void, count: usize);
+
+    pub fn nl_word_embedding_for_language(language: *const c_char) -> *mut c_void;
+    pub fn nl_sentence_embedding_for_language(language: *const c_char) -> *mut c_void;
+    pub fn nl_embedding_release(handle: *mut c_void);
+    pub fn nl_embedding_dimension(handle: *mut c_void) -> usize;
+    pub fn nl_embedding_vocabulary_size(handle: *mut c_void) -> usize;
+    pub fn nl_embedding_vector_for_string(
+        handle: *mut c_void,
+        word: *const c_char,
+        out_buf: *mut f64,
+        out_len: usize,
+    ) -> bool;
+    pub fn nl_embedding_distance(
+        handle: *mut c_void,
+        a: *const c_char,
+        b: *const c_char,
+    ) -> f64;
+    pub fn nl_embedding_neighbors_for_string(
+        handle: *mut c_void,
+        word: *const c_char,
+        max_count: usize,
+        out_array: *mut *mut c_void,
+        out_count: *mut usize,
+    ) -> bool;
+    pub fn nl_embedding_neighbors_free(array: *mut c_void, count: usize);
+}
+
+#[repr(C)]
+pub struct EmbeddingNeighborRaw {
+    pub word: *mut c_char,
+    pub distance: f64,
 }
 
 pub mod status {

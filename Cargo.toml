@@ -1,6 +1,6 @@
 [package]
 name = "naturallanguage"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 homepage = "https://github.com/doom-fish/naturallanguage-rs"
@@ -35,10 +35,11 @@ name = "naturallanguage"
 crate-type = ["lib"]
 
 [features]
-default = ["language_detection", "tokenize", "tag"]
+default = ["language_detection", "tokenize", "tag", "embedding"]
 language_detection = []
 tokenize = []
 tag = []
+embedding = []
 
 [dependencies]
 
@@ -69,3 +70,7 @@ required-features = ["tag"]
 [profile.release]
 debug = "full"
 strip = "none"
+
+[[example]]
+name = "04_embedding"
+required-features = ["embedding"]

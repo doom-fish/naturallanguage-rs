@@ -243,3 +243,142 @@ public func nl_named_entities_free(_ array: UnsafeMutableRawPointer?, _ count: I
     }
     typed.deallocate()
 }
+
+// MARK: - Word embeddings (v0.2)
+
+private var embeddingStore: [UnsafeMutableRawPointer: NLEmbedding] = [:]
+private let embeddingStoreLock = NSLock()
+
+@_cdecl("nl_word_embedding_for_language")
+public func nl_word_embedding_for_language(
+    _ language: UnsafePointer<CChar>
+) -> UnsafeMutableRawPointer? {
+    let langStr = String(cString: language)
+    let lang = NLLanguage(rawValue: langStr)
+    guard let emb = NLEmbedding.wordEmbedding(for: lang) else { return nil }
+    let key = Unmanaged.passRetained(emb).toOpaque()
+    embeddingStoreLock.lock()
+    embeddingStore[key] = emb
+    embeddingStoreLock.unlock()
+    return key
+}
+
+@_cdecl("nl_sentence_embedding_for_language")
+public func nl_sentence_embedding_for_language(
+    _ language: UnsafePointer<CChar>
+) -> UnsafeMutableRawPointer? {
+    let langStr = String(cString: language)
+    let lang = NLLanguage(rawValue: langStr)
+    guard let emb = NLEmbedding.sentenceEmbedding(for: lang) else { return nil }
+    let key = Unmanaged.passRetained(emb).toOpaque()
+    embeddingStoreLock.lock()
+    embeddingStore[key] = emb
+    embeddingStoreLock.unlock()
+    return key
+}
+
+@_cdecl("nl_embedding_release")
+public func nl_embedding_release(_ handle: UnsafeMutableRawPointer?) {
+    guard let handle = handle else { return }
+    embeddingStoreLock.lock()
+    embeddingStore.removeValue(forKey: handle)
+    embeddingStoreLock.unlock()
+    Unmanaged<NLEmbedding>.fromOpaque(handle).release()
+}
+
+@_cdecl("nl_embedding_dimension")
+public func nl_embedding_dimension(_ handle: UnsafeMutableRawPointer?) -> Int {
+    guard let handle = handle else { return 0 }
+    let emb = Unmanaged<NLEmbedding>.fromOpaque(handle).takeUnretainedValue()
+    return emb.dimension
+}
+
+@_cdecl("nl_embedding_vocabulary_size")
+public func nl_embedding_vocabulary_size(_ handle: UnsafeMutableRawPointer?) -> Int {
+    guard let handle = handle else { return 0 }
+    let emb = Unmanaged<NLEmbedding>.fromOpaque(handle).takeUnretainedValue()
+    return emb.vocabularySize
+}
+
+/// Fill `out_buf` (length = embedding.dimension) with the vector for
+/// `word`. Returns `true` on success.
+@_cdecl("nl_embedding_vector_for_string")
+public func nl_embedding_vector_for_string(
+    _ handle: UnsafeMutableRawPointer?,
+    _ word: UnsafePointer<CChar>,
+    _ out_buf: UnsafeMutablePointer<Double>,
+    _ out_len: Int
+) -> Bool {
+    guard let handle = handle else { return false }
+    let emb = Unmanaged<NLEmbedding>.fromOpaque(handle).takeUnretainedValue()
+    let wordStr = String(cString: word)
+    guard let vec = emb.vector(for: wordStr) else { return false }
+    let n = min(vec.count, out_len)
+    for i in 0..<n { out_buf[i] = vec[i] }
+    return true
+}
+
+/// Cosine distance between `a` and `b` per Apple's
+/// `NLDistanceTypeCosine` (= 0). Returns `-1.0` if either string is
+/// missing from the embedding.
+@_cdecl("nl_embedding_distance")
+public func nl_embedding_distance(
+    _ handle: UnsafeMutableRawPointer?,
+    _ a: UnsafePointer<CChar>,
+    _ b: UnsafePointer<CChar>
+) -> Double {
+    guard let handle = handle else { return -1.0 }
+    let emb = Unmanaged<NLEmbedding>.fromOpaque(handle).takeUnretainedValue()
+    let aStr = String(cString: a)
+    let bStr = String(cString: b)
+    guard emb.contains(aStr), emb.contains(bStr) else { return -1.0 }
+    return emb.distance(between: aStr, and: bStr, distanceType: .cosine)
+}
+
+/// Find up to `maxCount` nearest neighbours of `word`. Emits `n`
+/// `NLEmbeddingNeighborRaw` rows into a newly-allocated buffer.
+@_cdecl("nl_embedding_neighbors_for_string")
+public func nl_embedding_neighbors_for_string(
+    _ handle: UnsafeMutableRawPointer?,
+    _ word: UnsafePointer<CChar>,
+    _ maxCount: Int,
+    _ out_array: UnsafeMutablePointer<UnsafeMutableRawPointer?>,
+    _ out_count: UnsafeMutablePointer<Int>
+) -> Bool {
+    guard let handle = handle else { return false }
+    let emb = Unmanaged<NLEmbedding>.fromOpaque(handle).takeUnretainedValue()
+    let wordStr = String(cString: word)
+    var names: [String] = []
+    var dists: [Double] = []
+    emb.enumerateNeighbors(for: wordStr, maximumCount: maxCount, distanceType: .cosine) {
+        neighbor, dist in
+        names.append(neighbor)
+        dists.append(dist)
+        return true
+    }
+    let n = names.count
+    if n == 0 { out_array.pointee = nil; out_count.pointee = 0; return true }
+    let buf = UnsafeMutablePointer<NLEmbeddingNeighborRaw>.allocate(capacity: n)
+    for i in 0..<n {
+        buf.advanced(by: i).initialize(to: NLEmbeddingNeighborRaw(
+            word: strdup(names[i]),
+            distance: dists[i]
+        ))
+    }
+    out_array.pointee = UnsafeMutableRawPointer(buf)
+    out_count.pointee = n
+    return true
+}
+
+public struct NLEmbeddingNeighborRaw {
+    public var word: UnsafeMutablePointer<CChar>?
+    public var distance: Double
+}
+
+@_cdecl("nl_embedding_neighbors_free")
+public func nl_embedding_neighbors_free(_ array: UnsafeMutableRawPointer?, _ count: Int) {
+    guard let array = array else { return }
+    let typed = array.assumingMemoryBound(to: NLEmbeddingNeighborRaw.self)
+    for i in 0..<count { if let s = typed.advanced(by: i).pointee.word { free(s) } }
+    typed.deallocate()
+}

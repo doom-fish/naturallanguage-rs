@@ -28,6 +28,10 @@ pub mod tokenizer;
 #[cfg_attr(docsrs, doc(cfg(feature = "tag")))]
 pub mod tagger;
 
+#[cfg(feature = "embedding")]
+#[cfg_attr(docsrs, doc(cfg(feature = "embedding")))]
+pub mod embedding;
+
 pub use error::NLError;
 
 #[cfg(feature = "language_detection")]
@@ -38,6 +42,9 @@ pub use tokenizer::{tokenize, Token, TokenUnit};
 
 #[cfg(feature = "tag")]
 pub use tagger::{named_entities, EntityKind, NamedEntity};
+
+#[cfg(feature = "embedding")]
+pub use embedding::{Embedding, Neighbor};
 
 /// Common imports.
 pub mod prelude {
