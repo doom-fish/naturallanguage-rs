@@ -358,6 +358,14 @@ fn embedding_enum_coverage() {
 }
 
 #[test]
+fn embedding_typedef_coverage() {
+    let header = read_header("NLEmbedding");
+    assert!(header.contains("typedef double NLDistance;"));
+    let corpus = rust_sources(&["embedding/mod.rs"]);
+    assert!(corpus.contains("pub type Distance = f64;"));
+}
+
+#[test]
 fn model_enum_coverage() {
     let header = read_header("NLModel");
     let variants = rust_enum_variants(&rust_sources(&["model.rs"]));
@@ -795,5 +803,27 @@ fn nl_contextual_embedding_result_coverage() {
             ),
         ],
         &omitted_set(["init"]),
+    );
+}
+
+#[test]
+fn nl_data_asset_absent_from_current_macos_sdk() {
+    let headers_dir = sdk_root().join("System/Library/Frameworks/NaturalLanguage.framework/Headers");
+    assert!(!headers_dir.join("NLDataAsset.h").exists());
+
+    let mut matches = Vec::new();
+    for entry in std::fs::read_dir(&headers_dir).expect("read headers dir") {
+        let path = entry.expect("header entry").path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("h") {
+            continue;
+        }
+        if read(&path).contains("NLDataAsset") {
+            matches.push(path.file_name().unwrap().to_string_lossy().into_owned());
+        }
+    }
+
+    assert!(
+        matches.is_empty(),
+        "NLDataAsset unexpectedly present in current NaturalLanguage.framework headers: {matches:?}"
     );
 }

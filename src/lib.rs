@@ -69,7 +69,7 @@ pub use tagger::{
 };
 
 #[cfg(feature = "embedding")]
-pub use embedding::{Embedding, EmbeddingDictionaryEntry, DistanceType, Neighbor};
+pub use embedding::{Distance, DistanceType, Embedding, EmbeddingDictionaryEntry, Neighbor};
 
 #[cfg(feature = "gazetteer")]
 pub use gazetteer::Gazetteer;
@@ -99,7 +99,7 @@ pub mod prelude {
         TaggedRange, Tagger, TaggerAssetsResult, TaggerOptions,
     };
     #[cfg(feature = "embedding")]
-    pub use crate::embedding::{Embedding, EmbeddingDictionaryEntry, DistanceType, Neighbor};
+    pub use crate::embedding::{Distance, DistanceType, Embedding, EmbeddingDictionaryEntry, Neighbor};
     #[cfg(feature = "gazetteer")]
     pub use crate::gazetteer::Gazetteer;
     #[cfg(feature = "model")]

@@ -15,6 +15,9 @@ pub enum DistanceType {
     Cosine = 0,
 }
 
+/// `NLDistance`.
+pub type Distance = f64;
+
 /// One dictionary entry accepted by `Embedding::write_dictionary`.
 #[derive(Debug, Clone, Copy)]
 pub struct EmbeddingDictionaryEntry<'a> {
@@ -135,7 +138,7 @@ impl Embedding {
         }
     }
 
-    pub fn distance(&self, a: &str, b: &str) -> Result<Option<f64>, NLError> {
+    pub fn distance(&self, a: &str, b: &str) -> Result<Option<Distance>, NLError> {
         self.distance_with_type(a, b, DistanceType::Cosine)
     }
 
@@ -144,7 +147,7 @@ impl Embedding {
         a: &str,
         b: &str,
         distance_type: DistanceType,
-    ) -> Result<Option<f64>, NLError> {
+    ) -> Result<Option<Distance>, NLError> {
         let ac = cstring_arg(a, "a")?;
         let bc = cstring_arg(b, "b")?;
         let distance = unsafe {
@@ -170,7 +173,7 @@ impl Embedding {
         &self,
         word: &str,
         max: usize,
-        maximum_distance: Option<f64>,
+        maximum_distance: Option<Distance>,
         distance_type: DistanceType,
     ) -> Result<Vec<Neighbor>, NLError> {
         let cs = cstring_arg(word, "word")?;
@@ -206,7 +209,7 @@ impl Embedding {
         &self,
         vector: &[f64],
         max: usize,
-        maximum_distance: Option<f64>,
+        maximum_distance: Option<Distance>,
         distance_type: DistanceType,
     ) -> Result<Vec<Neighbor>, NLError> {
         let mut out_array: *mut c_void = ptr::null_mut();
@@ -233,7 +236,7 @@ impl Embedding {
         &self,
         word: &str,
         max: usize,
-        maximum_distance: Option<f64>,
+        maximum_distance: Option<Distance>,
         distance_type: DistanceType,
         mut callback: F,
     ) -> Result<(), NLError>
@@ -252,7 +255,7 @@ impl Embedding {
         &self,
         vector: &[f64],
         max: usize,
-        maximum_distance: Option<f64>,
+        maximum_distance: Option<Distance>,
         distance_type: DistanceType,
         mut callback: F,
     ) -> Result<(), NLError>
@@ -362,7 +365,7 @@ impl Embedding {
 pub struct Neighbor {
     pub word: String,
     /// Cosine distance — smaller is closer.
-    pub distance: f64,
+    pub distance: Distance,
 }
 
 unsafe fn decode_neighbors(array: *mut c_void, count: usize) -> Vec<Neighbor> {

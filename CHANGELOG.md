@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0] - 2026-05-16
+
+### Added
+
+- `COVERAGE.md`, a row-by-row audit of the public `NaturalLanguage.framework` macOS 26.2 SDK surface against the crate's expanded public API.
+- `embedding::Distance` / `naturallanguage::Distance` as the Rust alias for Apple's public `NLDistance` typedef.
+- An explicit SDK audit assertion that `NLDataAsset` is absent from the current macOS `NaturalLanguage.framework` headers, so future SDK additions fail loudly.
+
+### Changed
+
+- Refreshed the README and release metadata for the audited `v0.4.0` release.
+
 ## [0.3.0] - 2026-05-16
 
 ### Added
