@@ -1,11 +1,11 @@
 [package]
 name = "naturallanguage"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 homepage = "https://github.com/doom-fish/naturallanguage-rs"
 repository = "https://github.com/doom-fish/naturallanguage-rs"
-description = "Safe Rust bindings for Apple's NaturalLanguage framework — language detection, tokenization, named-entity recognition on macOS"
+description = "Safe Rust bindings for Apple's NaturalLanguage framework — language detection, tokenization, tagging, embeddings, gazetteers, and custom models on macOS"
 authors = ["Per Johansson <per@doom.fish>"]
 keywords = ["nlp", "macos", "language", "tokenizer", "apple"]
 categories = ["api-bindings", "os::macos-apis", "text-processing"]
@@ -14,6 +14,8 @@ readme = "README.md"
 build = "build.rs"
 include = [
     "src/**/*",
+    "examples/**/*",
+    "tests/**/*",
     "swift-bridge/Package.swift",
     "swift-bridge/Sources/**/*",
     "build.rs",
@@ -35,11 +37,22 @@ name = "naturallanguage"
 crate-type = ["lib"]
 
 [features]
-default = ["language_detection", "tokenize", "tag", "embedding"]
+default = [
+    "language_detection",
+    "tokenize",
+    "tag",
+    "embedding",
+    "gazetteer",
+    "model",
+    "contextual_embedding",
+]
 language_detection = []
 tokenize = []
-tag = []
+tag = ["tokenize"]
 embedding = []
+gazetteer = []
+model = []
+contextual_embedding = ["embedding"]
 
 [dependencies]
 
@@ -74,3 +87,19 @@ strip = "none"
 [[example]]
 name = "04_embedding"
 required-features = ["embedding"]
+
+[[example]]
+name = "05_tagger"
+required-features = ["tag"]
+
+[[example]]
+name = "06_gazetteer"
+required-features = ["tag", "gazetteer"]
+
+[[example]]
+name = "07_model"
+required-features = ["model"]
+
+[[example]]
+name = "08_contextual_embedding"
+required-features = ["contextual_embedding"]

@@ -8,6 +8,8 @@ use core::fmt;
 pub enum NLError {
     /// Caller supplied an invalid argument (e.g. NUL byte in input).
     InvalidArgument(String),
+    /// The requested API is unavailable on the current OS version.
+    Unsupported(String),
     /// Catch-all for unmapped statuses from the Swift bridge.
     Unknown { code: i32, message: String },
 }
@@ -16,6 +18,7 @@ impl fmt::Display for NLError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidArgument(m) => write!(f, "invalid argument: {m}"),
+            Self::Unsupported(m) => write!(f, "unsupported operation: {m}"),
             Self::Unknown { code, message } => write!(f, "naturallanguage error {code}: {message}"),
         }
     }

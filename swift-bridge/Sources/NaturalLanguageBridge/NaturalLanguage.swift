@@ -7,18 +7,7 @@
 import Foundation
 import NaturalLanguage
 
-// ----- Status codes (match src/ffi/mod.rs) -----
-
-private let NL_OK: Int32 = 0
-private let NL_INVALID_ARGUMENT: Int32 = -1
-private let NL_NO_DOMINANT_LANGUAGE: Int32 = -2
-private let NL_UNKNOWN: Int32 = -99
-
 // MARK: - String helpers
-
-private func ffiString(_ s: String) -> UnsafeMutablePointer<CChar>? {
-    return strdup(s)
-}
 
 @_cdecl("nl_string_free")
 public func nl_string_free(_ s: UnsafeMutablePointer<CChar>?) {
@@ -66,7 +55,7 @@ public func nl_dominant_language(
     guard let lang = NLLanguageRecognizer.dominantLanguage(for: s) else {
         return NL_NO_DOMINANT_LANGUAGE
     }
-    outLanguage.pointee = ffiString(lang.rawValue)
+    outLanguage.pointee = nlFfiString(lang.rawValue)
     return NL_OK
 }
 
@@ -98,7 +87,7 @@ public func nl_language_hypotheses(
     let buffer = UnsafeMutablePointer<NLLanguageHypothesisRaw>.allocate(capacity: count)
     for (i, (lang, conf)) in sorted.enumerated() {
         buffer.advanced(by: i).initialize(to: NLLanguageHypothesisRaw(
-            language: ffiString(lang.rawValue),
+            language: nlFfiString(lang.rawValue),
             confidence: conf
         ))
     }
@@ -159,7 +148,7 @@ public func nl_tokenize(
         buffer.advanced(by: i).initialize(to: NLTokenRaw(
             start: t.start,
             length: t.length,
-            text: ffiString(t.text)
+            text: nlFfiString(t.text)
         ))
     }
     outArray.pointee = UnsafeMutableRawPointer(buffer)
@@ -224,8 +213,8 @@ public func nl_named_entities(
         buffer.advanced(by: i).initialize(to: NLNamedEntityRaw(
             start: e.start,
             length: e.length,
-            text: ffiString(e.text),
-            tag: ffiString(e.tag)
+            text: nlFfiString(e.text),
+            tag: nlFfiString(e.tag)
         ))
     }
     outArray.pointee = UnsafeMutableRawPointer(buffer)

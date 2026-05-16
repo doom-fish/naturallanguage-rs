@@ -1,8 +1,8 @@
 # naturallanguage
 
-Safe Rust bindings for Apple's [NaturalLanguage](https://developer.apple.com/documentation/naturallanguage) framework on macOS — language detection, tokenisation, named-entity recognition.
+Safe Rust bindings for Apple's [NaturalLanguage](https://developer.apple.com/documentation/naturallanguage) framework on macOS — language detection, tokenization, tagging, embeddings, gazetteers, and custom/Core ML-backed language models.
 
-> **Status:** experimental. v0.1 ships single-shot dominant-language detection, multi-hypothesis ranking, word/sentence/paragraph/document tokenisation, and PersonalName/PlaceName/OrganizationName entity extraction. Embeddings (`NLEmbedding`), gazetteer-driven matching (`NLGazetteer`), and custom-model loading (`NLModel`) land in v0.2.
+> **Status:** experimental. `v0.3.0` covers the full public `NaturalLanguage.framework` header surface in the current macOS SDK audit, including `NLLanguage`, `NLScript`, `NLLanguageRecognizer`, `NLTokenizer`, `NLTagger`, `NLEmbedding`, `NLGazetteer`, `NLModel`, and `NLContextualEmbedding`. Availability-gated APIs return `NLError::Unsupported` on older macOS releases.
 
 ## Quick start
 
@@ -10,74 +10,79 @@ Safe Rust bindings for Apple's [NaturalLanguage](https://developer.apple.com/doc
 use naturallanguage::prelude::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // 1. Language detection
-    let lang = dominant_language("Tim Cook visited Apple Park.")?;
-    println!("dominant: {lang:?}");                         // Some("en")
+    let text = "Tim Cook visited Apple Park in Cupertino.";
 
-    // 2. Multi-hypothesis (top 3)
-    let hyps = language_hypotheses("Bonjour le monde", 3)?;
-    for h in &hyps {
-        println!("  {} ({:.2})", h.language, h.confidence); // fr (0.99) ...
+    let mut recognizer = LanguageRecognizer::new()?;
+    recognizer.process(text)?;
+    println!("dominant language: {:?}", recognizer.dominant_language()?);
+
+    let mut tokenizer = Tokenizer::new(TokenUnit::Word)?;
+    tokenizer.set_string(Some(text))?;
+    for token in tokenizer.tokens_in_range(TextRange::new(0, text.encode_utf16().count()))? {
+        println!("token: {:?}", token.text);
     }
 
-    // 3. Tokenisation
-    let tokens = tokenize("The quick brown fox.", TokenUnit::Word)?;
-    println!("words: {:?}",
-        tokens.iter().map(|t| t.text.as_str()).collect::<Vec<_>>());
-
-    // 4. Named-entity recognition
-    let ents = named_entities(
-        "Tim Cook visited Apple Park in Cupertino last Tuesday."
-    )?;
-    for e in &ents {
-        println!("  {:?}: {}", e.kind, e.text);
-        // PersonalName: Tim Cook
-        // OrganizationName: Apple
-        // PlaceName: Cupertino
+    for entity in named_entities(text)? {
+        println!("entity: {:?} -> {}", entity.kind, entity.text);
     }
+
     Ok(())
 }
 ```
 
-## Pipeline composition
+## Included surface
 
-```text
-screencapturekit-rs ──► system audio ──► speech ──► transcript
-                                                       │
-                                                       ▼
-                            ┌──────── naturallanguage ────────┐
-                            │                                  │
-                            ▼              ▼                    ▼
-                      detect language  tokenize          extract entities
-                            │              │                    │
-                            └──────────────┴────────────────────┘
-                                           │
-                                           ▼
-                                  foundation-models
-                                  ("summarise these utterances by speaker")
-```
-
-Pairs naturally with [`speech`](https://github.com/doom-fish/speech-rs) and [`foundation-models`](https://github.com/doom-fish/foundation-models-rs) for end-to-end on-device transcription → understanding pipelines.
+- Typed extensible enums for `Language`, `Script`, `Tag`, and `TagScheme`
+- Stateful and convenience wrappers for `NLLanguageRecognizer`
+- Stateful and convenience wrappers for `NLTokenizer`
+- Full `NLTagger` object API, schemes, options, orthography, model attachment, and gazetteer attachment
+- `NLEmbedding` word/sentence embeddings, revisions, file-backed loading, and dictionary export
+- `NLGazetteer` creation/loading/serialization APIs
+- `NLModel` and `NLModelConfiguration` wrappers plus minimal `MLModel` interop
+- `NLContextualEmbedding` and `NLContextualEmbeddingResult` (macOS 14+)
 
 ## Feature flags
 
-* `language_detection` (default) — `NLLanguageRecognizer`
-* `tokenize` (default) — `NLTokenizer`
-* `tag` (default) — `NLTagger` with the `.nameType` scheme
+All features are enabled by default.
 
-Disable any to shrink the surface; the Swift bridge always links the full framework.
+- `language_detection` — `NLLanguageRecognizer`
+- `tokenize` — `NLTokenizer`
+- `tag` — `NLTagger`
+- `embedding` — `NLEmbedding`
+- `gazetteer` — `NLGazetteer`
+- `model` — `NLModel` / `MLModel`
+- `contextual_embedding` — `NLContextualEmbedding`
+
+## Smoke examples
+
+- `cargo run --example 01_detect_language`
+- `cargo run --example 02_tokenize`
+- `cargo run --example 03_named_entities`
+- `cargo run --example 04_embedding`
+- `cargo run --example 05_tagger`
+- `cargo run --example 06_gazetteer`
+- `cargo run --example 07_model`
+- `cargo run --example 08_contextual_embedding`
+
+`07_model` uses bundled CreateML-generated fixtures under `examples/assets/` and compiles them with `xcrun coremlcompiler` before loading them through `NLModel`.
+
+## Verification
+
+The crate is validated with:
+
+- `cargo build --all-features`
+- `cargo clippy --all-targets --all-features -- -D warnings`
+- `cargo test --all-features`
+- `swift build --package-path swift-bridge -c release`
 
 ## Roadmap
 
-- [x] Dominant-language detection (`NLLanguageRecognizer.dominantLanguage`)
-- [x] Ranked multi-hypothesis (`languageHypothesesWithMaximum:`)
-- [x] Word / sentence / paragraph / document tokenisation
-- [x] Named-entity recognition (`PersonalName` / `PlaceName` / `OrganizationName`)
-- [ ] Lexical-class tagging (POS, lemmas) via other `NLTagScheme`s
-- [ ] `NLEmbedding` — sentence + word vectors
-- [ ] `NLGazetteer` — keyword-driven custom recogniser
-- [ ] `NLModel` — load + run `.mlmodel` text classifiers
-- [ ] Async API
+- [x] Full public header coverage for the current `NaturalLanguage.framework` SDK
+- [x] Header-based API coverage tests for constants, enums, and object APIs
+- [x] End-to-end smoke examples for each major feature area
+- [ ] Higher-level async/convenience layers on top of the low-level bindings
+
+Pairs naturally with [`speech`](https://github.com/doom-fish/speech-rs) and [`foundation-models`](https://github.com/doom-fish/foundation-models-rs) for on-device transcription → understanding pipelines.
 
 ## License
 

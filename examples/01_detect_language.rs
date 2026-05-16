@@ -1,35 +1,37 @@
-//! Detect dominant language + multi-hypothesis ranking on a few sample
-//! strings.
+//! Detect dominant language using both the convenience functions and the
+//! stateful `LanguageRecognizer` API.
 //!
 //! Run: `cargo run --example 01_detect_language`
 
 use naturallanguage::prelude::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let samples = [
-        "The quick brown fox jumps over the lazy dog.",
-        "Bonjour le monde, comment ça va aujourd'hui?",
-        "Ich habe heute ein neues Auto gekauft.",
-        "Hejsan! Hur mår du? Vad gör du i kväll?",
-        "你好，世界。今天天气真不错。",
-        "今日はいい天気ですね。",
-    ];
+    let text = "Bonjour! Tim Cook visited Paris and spoke a little English.";
 
-    println!("== dominant language ==");
-    for s in &samples {
-        let lang = dominant_language(s)?;
-        println!("  {lang:?}  ←  {:?}", &s[..s.char_indices().nth(40).map_or(s.len(), |(i, _)| i)]);
-    }
+    println!("single-shot dominant = {:?}", dominant_language(text)?);
+    println!("single-shot hypotheses = {:?}", language_hypotheses(text, 3)?);
 
-    println!("\n== multi-hypothesis (top 3) ==");
-    for s in &samples {
-        let hyps = language_hypotheses(s, 3)?;
-        let summary = hyps
-            .iter()
-            .map(|h| format!("{}={:.2}", h.language, h.confidence))
-            .collect::<Vec<_>>()
-            .join(", ");
-        println!("  [{summary}]  ←  {:?}", &s[..s.char_indices().nth(40).map_or(s.len(), |(i, _)| i)]);
-    }
+    let mut recognizer = LanguageRecognizer::new()?;
+    recognizer.set_language_hints(&[
+        LanguageHypothesis {
+            language: Language::FRENCH.as_str().to_string(),
+            confidence: 0.7,
+        },
+        LanguageHypothesis {
+            language: Language::ENGLISH.as_str().to_string(),
+            confidence: 0.3,
+        },
+    ])?;
+    recognizer.set_language_constraints(&[Language::FRENCH, Language::ENGLISH, Language::GERMAN])?;
+    recognizer.process(text)?;
+
+    println!("recognizer dominant = {:?}", recognizer.dominant_language()?);
+    println!("recognizer hints = {:?}", recognizer.language_hints()?);
+    println!("recognizer constraints = {:?}", recognizer.language_constraints()?);
+    println!("recognizer hypotheses = {:?}", recognizer.language_hypotheses(3)?);
+
+    recognizer.reset();
+    recognizer.process("Das ist ein kurzer deutscher Satz.")?;
+    println!("after reset dominant = {:?}", recognizer.dominant_language()?);
     Ok(())
 }
