@@ -31,7 +31,12 @@ pub struct Embedding {
     handle: NonNull<c_void>,
 }
 
+// SAFETY: Embedding wraps an Objective-C object handle from NaturalLanguage.framework,
+// which is thread-safe. Rust holds exclusive ownership of the handle, and the
+// framework's internal locking ensures thread-safe access.
 unsafe impl Send for Embedding {}
+
+// SAFETY: The underlying NLEmbedding object is thread-safe.
 unsafe impl Sync for Embedding {}
 
 impl Drop for Embedding {

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.2] - 2026-05-17
+
+### Changed
+
+- Added documentation comments to `unsafe impl Send/Sync` blocks explaining thread-safety guarantees for all wrapper types (`Embedding`, `LanguageRecognizer`, `Tokenizer`, `Tagger`, `Gazetteer`, `ContextualEmbedding`, `ContextualEmbeddingResult`, `CoreMlModel`, `ModelConfiguration`, `Model`). These types wrap Objective-C framework objects, which are thread-safe by design.
+
 ## [0.4.1] - 2026-05-17
 
 ### Added

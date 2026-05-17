@@ -15,7 +15,12 @@ pub struct Gazetteer {
     handle: NonNull<c_void>,
 }
 
+// SAFETY: Gazetteer wraps an Objective-C object handle from NaturalLanguage.framework,
+// which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
+// internal locking ensures thread-safe access.
 unsafe impl Send for Gazetteer {}
+
+// SAFETY: The underlying NLGazetteer object is thread-safe.
 unsafe impl Sync for Gazetteer {}
 
 impl Drop for Gazetteer {

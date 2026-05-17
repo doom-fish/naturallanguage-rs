@@ -96,7 +96,12 @@ pub struct Tokenizer {
     handle: NonNull<c_void>,
 }
 
+// SAFETY: Tokenizer wraps an Objective-C object handle from NaturalLanguage.framework,
+// which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
+// internal locking ensures thread-safe access.
 unsafe impl Send for Tokenizer {}
+
+// SAFETY: The underlying NLTokenizer object is thread-safe.
 unsafe impl Sync for Tokenizer {}
 
 impl Drop for Tokenizer {

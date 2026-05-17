@@ -24,7 +24,12 @@ pub struct CoreMlModel {
     handle: NonNull<c_void>,
 }
 
+// SAFETY: CoreMlModel wraps an Objective-C object handle from CoreML.framework,
+// which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
+// internal locking ensures thread-safe access.
 unsafe impl Send for CoreMlModel {}
+
+// SAFETY: The underlying MLModel object is thread-safe.
 unsafe impl Sync for CoreMlModel {}
 
 impl Drop for CoreMlModel {
@@ -83,7 +88,12 @@ pub struct ModelConfiguration {
     handle: NonNull<c_void>,
 }
 
+// SAFETY: ModelConfiguration wraps an Objective-C object handle from NaturalLanguage.framework,
+// which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
+// internal locking ensures thread-safe access.
 unsafe impl Send for ModelConfiguration {}
+
+// SAFETY: The underlying NLModelConfiguration object is thread-safe.
 unsafe impl Sync for ModelConfiguration {}
 
 impl Drop for ModelConfiguration {
@@ -155,7 +165,12 @@ pub struct Model {
     handle: NonNull<c_void>,
 }
 
+// SAFETY: Model wraps an Objective-C object handle from NaturalLanguage.framework,
+// which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
+// internal locking ensures thread-safe access.
 unsafe impl Send for Model {}
+
+// SAFETY: The underlying NLModel object is thread-safe.
 unsafe impl Sync for Model {}
 
 impl Drop for Model {

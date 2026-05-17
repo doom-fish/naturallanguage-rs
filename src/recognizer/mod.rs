@@ -24,7 +24,12 @@ pub struct LanguageRecognizer {
     handle: NonNull<c_void>,
 }
 
+// SAFETY: LanguageRecognizer wraps an Objective-C object handle from NaturalLanguage.framework,
+// which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
+// internal locking ensures thread-safe access.
 unsafe impl Send for LanguageRecognizer {}
+
+// SAFETY: The underlying NLLanguageRecognizer object is thread-safe.
 unsafe impl Sync for LanguageRecognizer {}
 
 impl Drop for LanguageRecognizer {

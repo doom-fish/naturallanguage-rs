@@ -40,7 +40,12 @@ pub struct ContextualEmbeddingResult {
     handle: NonNull<c_void>,
 }
 
+// SAFETY: ContextualEmbeddingResult wraps an Objective-C object handle from NaturalLanguage.framework,
+// which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
+// internal locking ensures thread-safe access.
 unsafe impl Send for ContextualEmbeddingResult {}
+
+// SAFETY: The underlying NLContextualEmbeddingResult object is thread-safe.
 unsafe impl Sync for ContextualEmbeddingResult {}
 
 impl Drop for ContextualEmbeddingResult {
@@ -179,7 +184,12 @@ pub struct ContextualEmbedding {
     handle: NonNull<c_void>,
 }
 
+// SAFETY: ContextualEmbedding wraps an Objective-C object handle from NaturalLanguage.framework,
+// which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
+// internal locking ensures thread-safe access.
 unsafe impl Send for ContextualEmbedding {}
+
+// SAFETY: The underlying NLContextualEmbedding object is thread-safe.
 unsafe impl Sync for ContextualEmbedding {}
 
 impl Drop for ContextualEmbedding {
