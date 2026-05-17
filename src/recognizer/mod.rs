@@ -36,12 +36,13 @@ impl Drop for LanguageRecognizer {
 impl LanguageRecognizer {
     /// Create a new empty recognizer.
     pub fn new() -> Result<Self, NLError> {
-        let handle = NonNull::new(unsafe { ffi::nl_language_recognizer_create() }).ok_or_else(|| {
-            NLError::Unknown {
-                code: ffi::status::UNKNOWN,
-                message: "failed to create language recognizer".into(),
-            }
-        })?;
+        let handle =
+            NonNull::new(unsafe { ffi::nl_language_recognizer_create() }).ok_or_else(|| {
+                NLError::Unknown {
+                    code: ffi::status::UNKNOWN,
+                    message: "failed to create language recognizer".into(),
+                }
+            })?;
         Ok(Self { handle })
     }
 
@@ -59,7 +60,11 @@ impl LanguageRecognizer {
         if status == ffi::status::OK {
             Ok(())
         } else {
-            Err(status_error(status, "language recognizer process failed", error))
+            Err(status_error(
+                status,
+                "language recognizer process failed",
+                error,
+            ))
         }
     }
 
@@ -72,17 +77,29 @@ impl LanguageRecognizer {
     pub fn dominant_language(&self) -> Result<Option<Language>, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status =
-            unsafe { ffi::nl_language_recognizer_dominant_language(self.handle.as_ptr(), &mut out, &mut error) };
+        let status = unsafe {
+            ffi::nl_language_recognizer_dominant_language(
+                self.handle.as_ptr(),
+                &mut out,
+                &mut error,
+            )
+        };
         match status {
             ffi::status::OK => Ok(unsafe { take_string(out) }.map(Language::from)),
             ffi::status::NO_DOMINANT_LANGUAGE => Ok(None),
-            _ => Err(status_error(status, "language recognizer dominant language failed", error)),
+            _ => Err(status_error(
+                status,
+                "language recognizer dominant language failed",
+                error,
+            )),
         }
     }
 
     /// Ranked language candidates for the accumulated text.
-    pub fn language_hypotheses(&self, max_hypotheses: usize) -> Result<Vec<LanguageHypothesis>, NLError> {
+    pub fn language_hypotheses(
+        &self,
+        max_hypotheses: usize,
+    ) -> Result<Vec<LanguageHypothesis>, NLError> {
         let mut array: *mut c_void = ptr::null_mut();
         let mut count: usize = 0;
         let mut error: *mut c_char = ptr::null_mut();
@@ -96,7 +113,11 @@ impl LanguageRecognizer {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "language recognizer hypotheses failed", error));
+            return Err(status_error(
+                status,
+                "language recognizer hypotheses failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_hypotheses(array, count) })
     }
@@ -115,7 +136,11 @@ impl LanguageRecognizer {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "language recognizer hints failed", error));
+            return Err(status_error(
+                status,
+                "language recognizer hints failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_hypotheses(array, count) })
     }
@@ -164,7 +189,11 @@ impl LanguageRecognizer {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "language recognizer constraints failed", error));
+            return Err(status_error(
+                status,
+                "language recognizer constraints failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_string_array(array, count) }
             .into_iter()
@@ -178,7 +207,10 @@ impl LanguageRecognizer {
             .iter()
             .map(|language| cstring_arg(language.as_str(), "language"))
             .collect::<Result<Vec<_>, _>>()?;
-        let raw_ptrs = raw_languages.iter().map(|language| language.as_ptr()).collect::<Vec<_>>();
+        let raw_ptrs = raw_languages
+            .iter()
+            .map(|language| language.as_ptr())
+            .collect::<Vec<_>>();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
             ffi::nl_language_recognizer_set_language_constraints(
@@ -191,7 +223,11 @@ impl LanguageRecognizer {
         if status == ffi::status::OK {
             Ok(())
         } else {
-            Err(status_error(status, "setting language constraints failed", error))
+            Err(status_error(
+                status,
+                "setting language constraints failed",
+                error,
+            ))
         }
     }
 }

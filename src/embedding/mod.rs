@@ -43,8 +43,10 @@ impl Drop for Embedding {
 impl Embedding {
     pub fn word_for_language(language: impl AsRef<str>) -> Result<Option<Self>, NLError> {
         let cs = cstring_arg(language.as_ref(), "language")?;
-        Ok(NonNull::new(unsafe { ffi::nl_word_embedding_for_language(cs.as_ptr()) })
-            .map(|handle| Self { handle }))
+        Ok(
+            NonNull::new(unsafe { ffi::nl_word_embedding_for_language(cs.as_ptr()) })
+                .map(|handle| Self { handle }),
+        )
     }
 
     pub fn word_for_language_revision(
@@ -60,8 +62,10 @@ impl Embedding {
 
     pub fn sentence_for_language(language: impl AsRef<str>) -> Result<Option<Self>, NLError> {
         let cs = cstring_arg(language.as_ref(), "language")?;
-        Ok(NonNull::new(unsafe { ffi::nl_sentence_embedding_for_language(cs.as_ptr()) })
-            .map(|handle| Self { handle }))
+        Ok(
+            NonNull::new(unsafe { ffi::nl_sentence_embedding_for_language(cs.as_ptr()) })
+                .map(|handle| Self { handle }),
+        )
     }
 
     pub fn sentence_for_language_revision(
@@ -79,7 +83,9 @@ impl Embedding {
         let path_c = cstring_arg(&path.as_ref().to_string_lossy(), "path")?;
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_embedding_with_contents_of_url(path_c.as_ptr(), &mut handle, &mut error) };
+        let status = unsafe {
+            ffi::nl_embedding_with_contents_of_url(path_c.as_ptr(), &mut handle, &mut error)
+        };
         if status != ffi::status::OK {
             return Err(status_error(status, "failed to load embedding", error));
         }
@@ -103,11 +109,16 @@ impl Embedding {
     pub fn language(&self) -> Result<Option<Language>, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_embedding_language(self.handle.as_ptr(), &mut out, &mut error) };
+        let status =
+            unsafe { ffi::nl_embedding_language(self.handle.as_ptr(), &mut out, &mut error) };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.map(Language::from))
         } else {
-            Err(status_error(status, "embedding language query failed", error))
+            Err(status_error(
+                status,
+                "embedding language query failed",
+                error,
+            ))
         }
     }
 
@@ -129,7 +140,12 @@ impl Embedding {
         }
         let mut buf = vec![0.0_f64; dim];
         let ok = unsafe {
-            ffi::nl_embedding_vector_for_string(self.handle.as_ptr(), cs.as_ptr(), buf.as_mut_ptr(), dim)
+            ffi::nl_embedding_vector_for_string(
+                self.handle.as_ptr(),
+                cs.as_ptr(),
+                buf.as_mut_ptr(),
+                dim,
+            )
         };
         if ok {
             Ok(Some(buf))
@@ -262,7 +278,9 @@ impl Embedding {
     where
         F: FnMut(&Neighbor) -> bool,
     {
-        for neighbor in self.neighbors_for_vector_with_limit(vector, max, maximum_distance, distance_type)? {
+        for neighbor in
+            self.neighbors_for_vector_with_limit(vector, max, maximum_distance, distance_type)?
+        {
             if !callback(&neighbor) {
                 break;
             }
@@ -289,11 +307,14 @@ impl Embedding {
 
     #[must_use]
     pub fn current_revision_for_language(language: &Language) -> usize {
-        let cs = std::ffi::CString::new(language.as_str()).expect("language constant must not contain NUL");
+        let cs = std::ffi::CString::new(language.as_str())
+            .expect("language constant must not contain NUL");
         unsafe { ffi::nl_embedding_current_revision_for_language(cs.as_ptr()) }
     }
 
-    pub fn supported_sentence_revisions_for_language(language: &Language) -> Result<Vec<usize>, NLError> {
+    pub fn supported_sentence_revisions_for_language(
+        language: &Language,
+    ) -> Result<Vec<usize>, NLError> {
         let cs = cstring_arg(language.as_str(), "language")?;
         let mut array: *mut c_void = ptr::null_mut();
         let mut count: usize = 0;
@@ -316,7 +337,8 @@ impl Embedding {
 
     #[must_use]
     pub fn current_sentence_revision_for_language(language: &Language) -> usize {
-        let cs = std::ffi::CString::new(language.as_str()).expect("language constant must not contain NUL");
+        let cs = std::ffi::CString::new(language.as_str())
+            .expect("language constant must not contain NUL");
         unsafe { ffi::nl_embedding_current_sentence_revision_for_language(cs.as_ptr()) }
     }
 
@@ -339,14 +361,18 @@ impl Embedding {
                 len: entry.values.len(),
             })
             .collect::<Vec<_>>();
-        let language_c = language.map(|value| cstring_arg(value.as_str(), "language")).transpose()?;
+        let language_c = language
+            .map(|value| cstring_arg(value.as_str(), "language"))
+            .transpose()?;
         let path_c = cstring_arg(&path.as_ref().to_string_lossy(), "path")?;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
             ffi::nl_embedding_write_dictionary(
                 refs.as_ptr().cast(),
                 refs.len(),
-                language_c.as_ref().map_or(ptr::null(), |value| value.as_ptr()),
+                language_c
+                    .as_ref()
+                    .map_or(ptr::null(), |value| value.as_ptr()),
                 revision,
                 path_c.as_ptr(),
                 &mut error,
@@ -355,7 +381,11 @@ impl Embedding {
         if status == ffi::status::OK {
             Ok(())
         } else {
-            Err(status_error(status, "writing embedding dictionary failed", error))
+            Err(status_error(
+                status,
+                "writing embedding dictionary failed",
+                error,
+            ))
         }
     }
 }
@@ -379,7 +409,9 @@ unsafe fn decode_neighbors(array: *mut c_void, count: usize) -> Vec<Neighbor> {
         let word = if raw.word.is_null() {
             String::new()
         } else {
-            core::ffi::CStr::from_ptr(raw.word).to_string_lossy().into_owned()
+            core::ffi::CStr::from_ptr(raw.word)
+                .to_string_lossy()
+                .into_owned()
         };
         values.push(Neighbor {
             word,

@@ -59,7 +59,11 @@ impl ContextualEmbeddingResult {
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.unwrap_or_default())
         } else {
-            Err(status_error(status, "contextual embedding result string failed", error))
+            Err(status_error(
+                status,
+                "contextual embedding result string failed",
+                error,
+            ))
         }
     }
 
@@ -70,9 +74,15 @@ impl ContextualEmbeddingResult {
             ffi::nl_contextual_embedding_result_language(self.handle.as_ptr(), &mut out, &mut error)
         };
         if status == ffi::status::OK {
-            Ok(Language::from(unsafe { take_string(out) }.unwrap_or_default()))
+            Ok(Language::from(
+                unsafe { take_string(out) }.unwrap_or_default(),
+            ))
         } else {
-            Err(status_error(status, "contextual embedding result language failed", error))
+            Err(status_error(
+                status,
+                "contextual embedding result language failed",
+                error,
+            ))
         }
     }
 
@@ -101,7 +111,11 @@ impl ContextualEmbeddingResult {
         Ok(unsafe { decode_token_vectors(array, count) })
     }
 
-    pub fn enumerate_token_vectors_in_range<F>(&self, range: TextRange, mut callback: F) -> Result<(), NLError>
+    pub fn enumerate_token_vectors_in_range<F>(
+        &self,
+        range: TextRange,
+        mut callback: F,
+    ) -> Result<(), NLError>
     where
         F: FnMut(&TokenVector) -> bool,
     {
@@ -113,7 +127,10 @@ impl ContextualEmbeddingResult {
         Ok(())
     }
 
-    pub fn token_vector_at_index(&self, character_index: usize) -> Result<Option<TokenVector>, NLError> {
+    pub fn token_vector_at_index(
+        &self,
+        character_index: usize,
+    ) -> Result<Option<TokenVector>, NLError> {
         let mut raw = ffi::TokenVectorRaw {
             start: 0,
             length: 0,
@@ -191,8 +208,14 @@ impl ContextualEmbedding {
             .iter()
             .map(|script| cstring_arg(script.as_str(), "script"))
             .collect::<Result<Vec<_>, _>>()?;
-        let language_ptrs = languages.iter().map(|value| value.as_ptr()).collect::<Vec<_>>();
-        let script_ptrs = scripts.iter().map(|value| value.as_ptr()).collect::<Vec<_>>();
+        let language_ptrs = languages
+            .iter()
+            .map(|value| value.as_ptr())
+            .collect::<Vec<_>>();
+        let script_ptrs = scripts
+            .iter()
+            .map(|value| value.as_ptr())
+            .collect::<Vec<_>>();
         let mut array: *mut c_void = ptr::null_mut();
         let mut count: usize = 0;
         let mut error: *mut c_char = ptr::null_mut();
@@ -210,37 +233,51 @@ impl ContextualEmbedding {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "contextual embedding catalog query failed", error));
+            return Err(status_error(
+                status,
+                "contextual embedding catalog query failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_handles(array, count) })
     }
 
     pub fn for_language(language: &Language) -> Result<Option<Self>, NLError> {
         let language_c = cstring_arg(language.as_str(), "language")?;
-        Ok(NonNull::new(unsafe {
-            ffi::nl_contextual_embedding_with_language(language_c.as_ptr())
-        })
-        .map(|handle| Self { handle }))
+        Ok(
+            NonNull::new(unsafe {
+                ffi::nl_contextual_embedding_with_language(language_c.as_ptr())
+            })
+            .map(|handle| Self { handle }),
+        )
     }
 
     pub fn for_script(script: &Script) -> Result<Option<Self>, NLError> {
         let script_c = cstring_arg(script.as_str(), "script")?;
-        Ok(NonNull::new(unsafe {
-            ffi::nl_contextual_embedding_with_script(script_c.as_ptr())
-        })
-        .map(|handle| Self { handle }))
+        Ok(
+            NonNull::new(unsafe { ffi::nl_contextual_embedding_with_script(script_c.as_ptr()) })
+                .map(|handle| Self { handle }),
+        )
     }
 
     pub fn model_identifier(&self) -> Result<String, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_contextual_embedding_model_identifier(self.handle.as_ptr(), &mut out, &mut error)
+            ffi::nl_contextual_embedding_model_identifier(
+                self.handle.as_ptr(),
+                &mut out,
+                &mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.unwrap_or_default())
         } else {
-            Err(status_error(status, "contextual embedding model_identifier failed", error))
+            Err(status_error(
+                status,
+                "contextual embedding model_identifier failed",
+                error,
+            ))
         }
     }
 
@@ -249,10 +286,19 @@ impl ContextualEmbedding {
         let mut count: usize = 0;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_contextual_embedding_languages(self.handle.as_ptr(), &mut array, &mut count, &mut error)
+            ffi::nl_contextual_embedding_languages(
+                self.handle.as_ptr(),
+                &mut array,
+                &mut count,
+                &mut error,
+            )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "contextual embedding languages failed", error));
+            return Err(status_error(
+                status,
+                "contextual embedding languages failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_string_array(array, count) }
             .into_iter()
@@ -265,10 +311,19 @@ impl ContextualEmbedding {
         let mut count: usize = 0;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_contextual_embedding_scripts(self.handle.as_ptr(), &mut array, &mut count, &mut error)
+            ffi::nl_contextual_embedding_scripts(
+                self.handle.as_ptr(),
+                &mut array,
+                &mut count,
+                &mut error,
+            )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "contextual embedding scripts failed", error));
+            return Err(status_error(
+                status,
+                "contextual embedding scripts failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_string_array(array, count) }
             .into_iter()
@@ -279,22 +334,34 @@ impl ContextualEmbedding {
     pub fn revision(&self) -> Result<usize, NLError> {
         let mut out = 0;
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_contextual_embedding_revision(self.handle.as_ptr(), &mut out, &mut error) };
+        let status = unsafe {
+            ffi::nl_contextual_embedding_revision(self.handle.as_ptr(), &mut out, &mut error)
+        };
         if status == ffi::status::OK {
             Ok(out)
         } else {
-            Err(status_error(status, "contextual embedding revision failed", error))
+            Err(status_error(
+                status,
+                "contextual embedding revision failed",
+                error,
+            ))
         }
     }
 
     pub fn dimension(&self) -> Result<usize, NLError> {
         let mut out = 0;
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_contextual_embedding_dimension(self.handle.as_ptr(), &mut out, &mut error) };
+        let status = unsafe {
+            ffi::nl_contextual_embedding_dimension(self.handle.as_ptr(), &mut out, &mut error)
+        };
         if status == ffi::status::OK {
             Ok(out)
         } else {
-            Err(status_error(status, "contextual embedding dimension failed", error))
+            Err(status_error(
+                status,
+                "contextual embedding dimension failed",
+                error,
+            ))
         }
     }
 
@@ -302,12 +369,20 @@ impl ContextualEmbedding {
         let mut out = 0;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_contextual_embedding_maximum_sequence_length(self.handle.as_ptr(), &mut out, &mut error)
+            ffi::nl_contextual_embedding_maximum_sequence_length(
+                self.handle.as_ptr(),
+                &mut out,
+                &mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(out)
         } else {
-            Err(status_error(status, "contextual embedding maximum_sequence_length failed", error))
+            Err(status_error(
+                status,
+                "contextual embedding maximum_sequence_length failed",
+                error,
+            ))
         }
     }
 
@@ -317,17 +392,26 @@ impl ContextualEmbedding {
         if status == ffi::status::OK {
             Ok(())
         } else {
-            Err(status_error(status, "contextual embedding load failed", error))
+            Err(status_error(
+                status,
+                "contextual embedding load failed",
+                error,
+            ))
         }
     }
 
     pub fn unload(&self) -> Result<(), NLError> {
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_contextual_embedding_unload(self.handle.as_ptr(), &mut error) };
+        let status =
+            unsafe { ffi::nl_contextual_embedding_unload(self.handle.as_ptr(), &mut error) };
         if status == ffi::status::OK {
             Ok(())
         } else {
-            Err(status_error(status, "contextual embedding unload failed", error))
+            Err(status_error(
+                status,
+                "contextual embedding unload failed",
+                error,
+            ))
         }
     }
 
@@ -337,34 +421,51 @@ impl ContextualEmbedding {
         language: Option<&Language>,
     ) -> Result<Option<ContextualEmbeddingResult>, NLError> {
         let text_c = cstring_arg(text, "text")?;
-        let language_c = language.map(|value| cstring_arg(value.as_str(), "language")).transpose()?;
+        let language_c = language
+            .map(|value| cstring_arg(value.as_str(), "language"))
+            .transpose()?;
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
             ffi::nl_contextual_embedding_result_for_string(
                 self.handle.as_ptr(),
                 text_c.as_ptr(),
-                language_c.as_ref().map_or(ptr::null(), |value| value.as_ptr()),
+                language_c
+                    .as_ref()
+                    .map_or(ptr::null(), |value| value.as_ptr()),
                 &mut handle,
                 &mut error,
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "contextual embedding inference failed", error));
+            return Err(status_error(
+                status,
+                "contextual embedding inference failed",
+                error,
+            ));
         }
-        Ok(NonNull::new(handle).map(|handle| unsafe { ContextualEmbeddingResult::from_retained_ptr(handle) }))
+        Ok(NonNull::new(handle)
+            .map(|handle| unsafe { ContextualEmbeddingResult::from_retained_ptr(handle) }))
     }
 
     pub fn has_available_assets(&self) -> Result<bool, NLError> {
         let mut out = false;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_contextual_embedding_has_available_assets(self.handle.as_ptr(), &mut out, &mut error)
+            ffi::nl_contextual_embedding_has_available_assets(
+                self.handle.as_ptr(),
+                &mut out,
+                &mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(out)
         } else {
-            Err(status_error(status, "contextual embedding asset availability failed", error))
+            Err(status_error(
+                status,
+                "contextual embedding asset availability failed",
+                error,
+            ))
         }
     }
 
@@ -372,7 +473,11 @@ impl ContextualEmbedding {
         let mut result = ContextualEmbeddingAssetsResult::Error as i32;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_contextual_embedding_request_assets(self.handle.as_ptr(), &mut result, &mut error)
+            ffi::nl_contextual_embedding_request_assets(
+                self.handle.as_ptr(),
+                &mut result,
+                &mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(match result {
@@ -381,7 +486,11 @@ impl ContextualEmbedding {
                 _ => ContextualEmbeddingAssetsResult::Error,
             })
         } else {
-            Err(status_error(status, "contextual embedding asset request failed", error))
+            Err(status_error(
+                status,
+                "contextual embedding asset request failed",
+                error,
+            ))
         }
     }
 }

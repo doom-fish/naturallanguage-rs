@@ -6,7 +6,9 @@ use std::ptr::{self, NonNull};
 use crate::error::NLError;
 use crate::ffi;
 use crate::language::Language;
-use crate::util::{cstring_arg, decode_string_array, decode_usize_array, status_error, take_string};
+use crate::util::{
+    cstring_arg, decode_string_array, decode_usize_array, status_error, take_string,
+};
 
 /// `NLModelType`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -57,7 +59,11 @@ impl CoreMlModel {
             ffi::nl_coreml_model_create_from_compiled_path(path_c.as_ptr(), &mut handle, &mut error)
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "failed to load compiled Core ML model", error));
+            return Err(status_error(
+                status,
+                "failed to load compiled Core ML model",
+                error,
+            ));
         }
         let handle = NonNull::new(handle).ok_or_else(|| NLError::Unknown {
             code: ffi::status::UNKNOWN,
@@ -102,11 +108,17 @@ impl ModelConfiguration {
     pub fn language(&self) -> Result<Option<Language>, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_model_configuration_language(self.handle.as_ptr(), &mut out, &mut error) };
+        let status = unsafe {
+            ffi::nl_model_configuration_language(self.handle.as_ptr(), &mut out, &mut error)
+        };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.map(Language::from))
         } else {
-            Err(status_error(status, "model configuration language query failed", error))
+            Err(status_error(
+                status,
+                "model configuration language query failed",
+                error,
+            ))
         }
     }
 
@@ -165,7 +177,8 @@ impl Model {
         let path_c = cstring_arg(&path.as_ref().to_string_lossy(), "path")?;
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_model_with_contents_of_url(path_c.as_ptr(), &mut handle, &mut error) };
+        let status =
+            unsafe { ffi::nl_model_with_contents_of_url(path_c.as_ptr(), &mut handle, &mut error) };
         if status != ffi::status::OK {
             return Err(status_error(status, "failed to load NLModel", error));
         }
@@ -181,7 +194,11 @@ impl Model {
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe { ffi::nl_model_with_mlmodel(model.as_ptr(), &mut handle, &mut error) };
         if status != ffi::status::OK {
-            return Err(status_error(status, "failed to create NLModel from MLModel", error));
+            return Err(status_error(
+                status,
+                "failed to create NLModel from MLModel",
+                error,
+            ));
         }
         let handle = NonNull::new(handle).ok_or_else(|| NLError::Unknown {
             code: ffi::status::UNKNOWN,
@@ -191,12 +208,11 @@ impl Model {
     }
 
     pub fn configuration(&self) -> Result<ModelConfiguration, NLError> {
-        let handle = NonNull::new(unsafe { ffi::nl_model_configuration(self.handle.as_ptr()) }).ok_or_else(|| {
-            NLError::Unknown {
+        let handle = NonNull::new(unsafe { ffi::nl_model_configuration(self.handle.as_ptr()) })
+            .ok_or_else(|| NLError::Unknown {
                 code: ffi::status::UNKNOWN,
                 message: "failed to get model configuration".into(),
-            }
-        })?;
+            })?;
         Ok(unsafe { ModelConfiguration::from_retained_ptr(handle) })
     }
 
@@ -205,12 +221,21 @@ impl Model {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_model_predicted_label_for_string(self.handle.as_ptr(), text_c.as_ptr(), &mut out, &mut error)
+            ffi::nl_model_predicted_label_for_string(
+                self.handle.as_ptr(),
+                text_c.as_ptr(),
+                &mut out,
+                &mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) })
         } else {
-            Err(status_error(status, "predicted_label_for_string failed", error))
+            Err(status_error(
+                status,
+                "predicted_label_for_string failed",
+                error,
+            ))
         }
     }
 
@@ -219,7 +244,10 @@ impl Model {
             .iter()
             .map(|token| cstring_arg(token, "token"))
             .collect::<Result<Vec<_>, _>>()?;
-        let token_ptrs = token_cs.iter().map(|token| token.as_ptr()).collect::<Vec<_>>();
+        let token_ptrs = token_cs
+            .iter()
+            .map(|token| token.as_ptr())
+            .collect::<Vec<_>>();
         let mut array: *mut c_void = ptr::null_mut();
         let mut count: usize = 0;
         let mut error: *mut c_char = ptr::null_mut();
@@ -234,7 +262,11 @@ impl Model {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "predicted_labels_for_tokens failed", error));
+            return Err(status_error(
+                status,
+                "predicted_labels_for_tokens failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_string_array(array, count) })
     }
@@ -259,7 +291,11 @@ impl Model {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "predicted_label_hypotheses_for_string failed", error));
+            return Err(status_error(
+                status,
+                "predicted_label_hypotheses_for_string failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_label_scores(array, count) })
     }
@@ -273,7 +309,10 @@ impl Model {
             .iter()
             .map(|token| cstring_arg(token, "token"))
             .collect::<Result<Vec<_>, _>>()?;
-        let token_ptrs = token_cs.iter().map(|token| token.as_ptr()).collect::<Vec<_>>();
+        let token_ptrs = token_cs
+            .iter()
+            .map(|token| token.as_ptr())
+            .collect::<Vec<_>>();
         let mut array: *mut c_void = ptr::null_mut();
         let mut count: usize = 0;
         let mut error: *mut c_char = ptr::null_mut();
@@ -289,7 +328,11 @@ impl Model {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "predicted_label_hypotheses_for_tokens failed", error));
+            return Err(status_error(
+                status,
+                "predicted_label_hypotheses_for_tokens failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_hypothesis_sets(array, count) })
     }
@@ -306,7 +349,9 @@ unsafe fn decode_label_scores(array: *mut c_void, count: usize) -> Vec<(String, 
         let label = if raw.key.is_null() {
             String::new()
         } else {
-            core::ffi::CStr::from_ptr(raw.key).to_string_lossy().into_owned()
+            core::ffi::CStr::from_ptr(raw.key)
+                .to_string_lossy()
+                .into_owned()
         };
         values.push((label, raw.value));
     }

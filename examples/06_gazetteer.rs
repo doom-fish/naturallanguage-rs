@@ -10,13 +10,25 @@ use naturallanguage::prelude::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut dictionary = BTreeMap::new();
-    dictionary.insert(Tag::PERSONAL_NAME.as_str().to_string(), vec!["Ada Lovelace".to_string()]);
-    dictionary.insert(Tag::PLACE_NAME.as_str().to_string(), vec!["Gotham".to_string()]);
-    dictionary.insert(Tag::ORGANIZATION_NAME.as_str().to_string(), vec!["Acme Labs".to_string()]);
+    dictionary.insert(
+        Tag::PERSONAL_NAME.as_str().to_string(),
+        vec!["Ada Lovelace".to_string()],
+    );
+    dictionary.insert(
+        Tag::PLACE_NAME.as_str().to_string(),
+        vec!["Gotham".to_string()],
+    );
+    dictionary.insert(
+        Tag::ORGANIZATION_NAME.as_str().to_string(),
+        vec!["Acme Labs".to_string()],
+    );
 
     let gazetteer = Gazetteer::from_dictionary(&dictionary, Some(&Language::ENGLISH))?;
     println!("language = {:?}", gazetteer.language()?);
-    println!("label(Acme Labs) = {:?}", gazetteer.label_for_string("Acme Labs")?);
+    println!(
+        "label(Acme Labs) = {:?}",
+        gazetteer.label_for_string("Acme Labs")?
+    );
     println!("serialized bytes = {}", gazetteer.data()?.len());
 
     let output_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("target/example-output");
@@ -24,14 +36,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let gazetteer_path = output_dir.join("custom_names.gazetteer");
     Gazetteer::write_dictionary(&dictionary, Some(&Language::ENGLISH), &gazetteer_path)?;
     let roundtrip = Gazetteer::from_path(&gazetteer_path)?;
-    println!("roundtrip label(Gotham) = {:?}", roundtrip.label_for_string("Gotham")?);
+    println!(
+        "roundtrip label(Gotham) = {:?}",
+        roundtrip.label_for_string("Gotham")?
+    );
 
     let text = "Ada Lovelace joined Acme Labs in Gotham.";
     let full = TextRange::new(0, text.encode_utf16().count());
     let mut tagger = Tagger::new(&[TagScheme::NAME_TYPE])?;
     tagger.set_string(Some(text))?;
     tagger.set_gazetteers(&[&roundtrip], &TagScheme::NAME_TYPE)?;
-    println!("attached gazetteers = {}", tagger.gazetteers_for_tag_scheme(&TagScheme::NAME_TYPE)?.len());
+    println!(
+        "attached gazetteers = {}",
+        tagger
+            .gazetteers_for_tag_scheme(&TagScheme::NAME_TYPE)?
+            .len()
+    );
     for tagged in tagger.tags_in_range(
         full,
         TokenUnit::Word,

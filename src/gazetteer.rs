@@ -38,7 +38,9 @@ impl Gazetteer {
         let path_c = cstring_arg(&path.as_ref().to_string_lossy(), "path")?;
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_gazetteer_with_contents_of_url(path_c.as_ptr(), &mut handle, &mut error) };
+        let status = unsafe {
+            ffi::nl_gazetteer_with_contents_of_url(path_c.as_ptr(), &mut handle, &mut error)
+        };
         if status != ffi::status::OK {
             return Err(status_error(status, "failed to load gazetteer", error));
         }
@@ -53,7 +55,9 @@ impl Gazetteer {
     pub fn from_data(data: &[u8]) -> Result<Self, NLError> {
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_gazetteer_with_data(data.as_ptr(), data.len(), &mut handle, &mut error) };
+        let status = unsafe {
+            ffi::nl_gazetteer_with_data(data.as_ptr(), data.len(), &mut handle, &mut error)
+        };
         if status != ffi::status::OK {
             return Err(status_error(status, "failed to load gazetteer data", error));
         }
@@ -72,9 +76,7 @@ impl Gazetteer {
         let label_terms = dictionary
             .iter()
             .flat_map(|(label, terms)| terms.iter().map(move |term| (label, term)))
-            .map(|(label, term)| {
-                Ok((cstring_arg(label, "label")?, cstring_arg(term, "term")?))
-            })
+            .map(|(label, term)| Ok((cstring_arg(label, "label")?, cstring_arg(term, "term")?)))
             .collect::<Result<Vec<_>, NLError>>()?;
         let refs = label_terms
             .iter()
@@ -83,14 +85,18 @@ impl Gazetteer {
                 term: term.as_ptr(),
             })
             .collect::<Vec<_>>();
-        let language_c = language.map(|value| cstring_arg(value.as_str(), "language")).transpose()?;
+        let language_c = language
+            .map(|value| cstring_arg(value.as_str(), "language"))
+            .transpose()?;
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
             ffi::nl_gazetteer_with_dictionary(
                 refs.as_ptr().cast(),
                 refs.len(),
-                language_c.as_ref().map_or(ptr::null(), |value| value.as_ptr()),
+                language_c
+                    .as_ref()
+                    .map_or(ptr::null(), |value| value.as_ptr()),
                 &mut handle,
                 &mut error,
             )
@@ -111,7 +117,12 @@ impl Gazetteer {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_gazetteer_label_for_string(self.handle.as_ptr(), text_c.as_ptr(), &mut out, &mut error)
+            ffi::nl_gazetteer_label_for_string(
+                self.handle.as_ptr(),
+                text_c.as_ptr(),
+                &mut out,
+                &mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) })
@@ -124,11 +135,16 @@ impl Gazetteer {
     pub fn language(&self) -> Result<Option<Language>, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_gazetteer_language(self.handle.as_ptr(), &mut out, &mut error) };
+        let status =
+            unsafe { ffi::nl_gazetteer_language(self.handle.as_ptr(), &mut out, &mut error) };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.map(Language::from))
         } else {
-            Err(status_error(status, "gazetteer language query failed", error))
+            Err(status_error(
+                status,
+                "gazetteer language query failed",
+                error,
+            ))
         }
     }
 
@@ -152,9 +168,8 @@ impl Gazetteer {
         if bytes.bytes.is_null() || bytes.len == 0 {
             return Ok(Vec::new());
         }
-        let result = unsafe {
-            std::slice::from_raw_parts(bytes.bytes.cast::<u8>(), bytes.len).to_vec()
-        };
+        let result =
+            unsafe { std::slice::from_raw_parts(bytes.bytes.cast::<u8>(), bytes.len).to_vec() };
         unsafe { ffi::nl_bytes_free(bytes.bytes) };
         Ok(result)
     }
@@ -168,9 +183,7 @@ impl Gazetteer {
         let label_terms = dictionary
             .iter()
             .flat_map(|(label, terms)| terms.iter().map(move |term| (label, term)))
-            .map(|(label, term)| {
-                Ok((cstring_arg(label, "label")?, cstring_arg(term, "term")?))
-            })
+            .map(|(label, term)| Ok((cstring_arg(label, "label")?, cstring_arg(term, "term")?)))
             .collect::<Result<Vec<_>, NLError>>()?;
         let refs = label_terms
             .iter()
@@ -179,14 +192,18 @@ impl Gazetteer {
                 term: term.as_ptr(),
             })
             .collect::<Vec<_>>();
-        let language_c = language.map(|value| cstring_arg(value.as_str(), "language")).transpose()?;
+        let language_c = language
+            .map(|value| cstring_arg(value.as_str(), "language"))
+            .transpose()?;
         let path_c = cstring_arg(&path.as_ref().to_string_lossy(), "path")?;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
             ffi::nl_gazetteer_write_dictionary(
                 refs.as_ptr().cast(),
                 refs.len(),
-                language_c.as_ref().map_or(ptr::null(), |value| value.as_ptr()),
+                language_c
+                    .as_ref()
+                    .map_or(ptr::null(), |value| value.as_ptr()),
                 path_c.as_ptr(),
                 &mut error,
             )

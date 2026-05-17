@@ -5,7 +5,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         eprintln!("no English word embedding available");
         return Ok(());
     };
-    println!("dimension = {}, vocab = {}", emb.dimension(), emb.vocabulary_size());
+    println!(
+        "dimension = {}, vocab = {}",
+        emb.dimension(),
+        emb.vocabulary_size()
+    );
 
     if let Some(d) = emb.distance("king", "queen")? {
         println!("dist(king, queen) = {d:.4}");

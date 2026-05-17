@@ -228,7 +228,10 @@ impl Tagger {
             .iter()
             .map(|scheme| cstring_arg(scheme.as_str(), "tag scheme"))
             .collect::<Result<Vec<_>, _>>()?;
-        let scheme_ptrs = schemes.iter().map(|scheme| scheme.as_ptr()).collect::<Vec<_>>();
+        let scheme_ptrs = schemes
+            .iter()
+            .map(|scheme| scheme.as_ptr())
+            .collect::<Vec<_>>();
         let mut error: *mut c_char = ptr::null_mut();
         let handle = NonNull::new(unsafe {
             ffi::nl_tagger_create(scheme_ptrs.as_ptr(), scheme_ptrs.len(), &mut error)
@@ -242,8 +245,9 @@ impl Tagger {
         let mut array: *mut c_void = ptr::null_mut();
         let mut count: usize = 0;
         let mut error: *mut c_char = ptr::null_mut();
-        let status =
-            unsafe { ffi::nl_tagger_tag_schemes(self.handle.as_ptr(), &mut array, &mut count, &mut error) };
+        let status = unsafe {
+            ffi::nl_tagger_tag_schemes(self.handle.as_ptr(), &mut array, &mut count, &mut error)
+        };
         if status != ffi::status::OK {
             return Err(status_error(status, "tagger tag_schemes failed", error));
         }
@@ -284,7 +288,10 @@ impl Tagger {
     }
 
     /// Available schemes for a given token unit and language.
-    pub fn available_tag_schemes(unit: crate::tokenizer::TokenUnit, language: &Language) -> Result<Vec<TagScheme>, NLError> {
+    pub fn available_tag_schemes(
+        unit: crate::tokenizer::TokenUnit,
+        language: &Language,
+    ) -> Result<Vec<TagScheme>, NLError> {
         let language_c = cstring_arg(language.as_str(), "language")?;
         let mut array: *mut c_void = ptr::null_mut();
         let mut count: usize = 0;
@@ -299,7 +306,11 @@ impl Tagger {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "available tag schemes query failed", error));
+            return Err(status_error(
+                status,
+                "available tag schemes query failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_string_array(array, count) }
             .into_iter()
@@ -327,7 +338,11 @@ impl Tagger {
         if status == ffi::status::OK {
             Ok(TextRange::new(range.start, range.length))
         } else {
-            Err(status_error(status, "tagger token_range_at_index failed", error))
+            Err(status_error(
+                status,
+                "tagger token_range_at_index failed",
+                error,
+            ))
         }
     }
 
@@ -352,7 +367,11 @@ impl Tagger {
         if status == ffi::status::OK {
             Ok(TextRange::new(out.start, out.length))
         } else {
-            Err(status_error(status, "tagger token_range_for_range failed", error))
+            Err(status_error(
+                status,
+                "tagger token_range_for_range failed",
+                error,
+            ))
         }
     }
 
@@ -360,13 +379,18 @@ impl Tagger {
     pub fn dominant_language(&self) -> Result<Option<Language>, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_tagger_dominant_language(self.handle.as_ptr(), &mut out, &mut error) };
+        let status =
+            unsafe { ffi::nl_tagger_dominant_language(self.handle.as_ptr(), &mut out, &mut error) };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.map(Language::from))
         } else if status == ffi::status::NO_DOMINANT_LANGUAGE {
             Ok(None)
         } else {
-            Err(status_error(status, "tagger dominant language failed", error))
+            Err(status_error(
+                status,
+                "tagger dominant language failed",
+                error,
+            ))
         }
     }
 
@@ -475,9 +499,15 @@ impl Tagger {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "tagger tag_hypotheses_at_index failed", error));
+            return Err(status_error(
+                status,
+                "tagger tag_hypotheses_at_index failed",
+                error,
+            ));
         }
-        Ok((TextRange::new(range.start, range.length), unsafe { decode_tag_hypotheses(array, count) }))
+        Ok((TextRange::new(range.start, range.length), unsafe {
+            decode_tag_hypotheses(array, count)
+        }))
     }
 
     /// Hint the language for the given text range.
@@ -501,7 +531,11 @@ impl Tagger {
     }
 
     /// Hint the orthography for the given text range.
-    pub fn set_orthography(&mut self, orthography: &Orthography, range: TextRange) -> Result<(), NLError> {
+    pub fn set_orthography(
+        &mut self,
+        orthography: &Orthography,
+        range: TextRange,
+    ) -> Result<(), NLError> {
         let dominant_script = orthography
             .dominant_script
             .as_ref()
@@ -510,7 +544,9 @@ impl Tagger {
         let mappings = orthography
             .language_map
             .iter()
-            .flat_map(|(script, languages)| languages.iter().map(move |language| (script, language)))
+            .flat_map(|(script, languages)| {
+                languages.iter().map(move |language| (script, language))
+            })
             .map(|(script, language)| {
                 Ok(OrthographyCStringEntry {
                     script: cstring_arg(script.as_str(), "script")?,
@@ -529,7 +565,9 @@ impl Tagger {
         let status = unsafe {
             ffi::nl_tagger_set_orthography(
                 self.handle.as_ptr(),
-                dominant_script.as_ref().map_or(ptr::null(), |value| value.as_ptr()),
+                dominant_script
+                    .as_ref()
+                    .map_or(ptr::null(), |value| value.as_ptr()),
                 entries.as_ptr().cast(),
                 entries.len(),
                 range.start,
@@ -548,7 +586,10 @@ impl Tagger {
     #[cfg(feature = "model")]
     pub fn set_models(&mut self, models: &[&Model], tag_scheme: &TagScheme) -> Result<(), NLError> {
         let scheme_c = cstring_arg(tag_scheme.as_str(), "tag scheme")?;
-        let handles = models.iter().map(|model| model.as_ptr()).collect::<Vec<_>>();
+        let handles = models
+            .iter()
+            .map(|model| model.as_ptr())
+            .collect::<Vec<_>>();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
             ffi::nl_tagger_set_models(
@@ -583,7 +624,11 @@ impl Tagger {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "tagger models_for_tag_scheme failed", error));
+            return Err(status_error(
+                status,
+                "tagger models_for_tag_scheme failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_model_handles(array, count) })
     }
@@ -596,7 +641,10 @@ impl Tagger {
         tag_scheme: &TagScheme,
     ) -> Result<(), NLError> {
         let scheme_c = cstring_arg(tag_scheme.as_str(), "tag scheme")?;
-        let handles = gazetteers.iter().map(|gazetteer| gazetteer.as_ptr()).collect::<Vec<_>>();
+        let handles = gazetteers
+            .iter()
+            .map(|gazetteer| gazetteer.as_ptr())
+            .collect::<Vec<_>>();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
             ffi::nl_tagger_set_gazetteers(
@@ -616,7 +664,10 @@ impl Tagger {
 
     /// Attached custom gazetteers for `tag_scheme`.
     #[cfg(feature = "gazetteer")]
-    pub fn gazetteers_for_tag_scheme(&self, tag_scheme: &TagScheme) -> Result<Vec<Gazetteer>, NLError> {
+    pub fn gazetteers_for_tag_scheme(
+        &self,
+        tag_scheme: &TagScheme,
+    ) -> Result<Vec<Gazetteer>, NLError> {
         let scheme_c = cstring_arg(tag_scheme.as_str(), "tag scheme")?;
         let mut array: *mut c_void = ptr::null_mut();
         let mut count: usize = 0;
@@ -631,13 +682,20 @@ impl Tagger {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "tagger gazetteers_for_tag_scheme failed", error));
+            return Err(status_error(
+                status,
+                "tagger gazetteers_for_tag_scheme failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_gazetteer_handles(array, count) })
     }
 
     /// Request any missing on-device assets for a language/scheme combination.
-    pub fn request_assets(language: &Language, tag_scheme: &TagScheme) -> Result<TaggerAssetsResult, NLError> {
+    pub fn request_assets(
+        language: &Language,
+        tag_scheme: &TagScheme,
+    ) -> Result<TaggerAssetsResult, NLError> {
         let language_c = cstring_arg(language.as_str(), "language")?;
         let scheme_c = cstring_arg(tag_scheme.as_str(), "tag scheme")?;
         let mut result = TaggerAssetsResult::Error as i32;
@@ -688,7 +746,9 @@ pub fn named_entities(text: &str) -> Result<Vec<NamedEntity>, NLError> {
             range,
             crate::tokenizer::TokenUnit::Word,
             &TagScheme::NAME_TYPE,
-            TaggerOptions::OMIT_PUNCTUATION | TaggerOptions::OMIT_WHITESPACE | TaggerOptions::JOIN_NAMES,
+            TaggerOptions::OMIT_PUNCTUATION
+                | TaggerOptions::OMIT_WHITESPACE
+                | TaggerOptions::JOIN_NAMES,
         )
         .map(|tags| {
             tags.into_iter()
@@ -729,13 +789,17 @@ unsafe fn tagged_range_from_raw(raw: *mut ffi::TagSpanRaw) -> TaggedRange {
     let text = if raw_ref.text.is_null() {
         String::new()
     } else {
-        core::ffi::CStr::from_ptr(raw_ref.text).to_string_lossy().into_owned()
+        core::ffi::CStr::from_ptr(raw_ref.text)
+            .to_string_lossy()
+            .into_owned()
     };
     let tag = if raw_ref.tag.is_null() {
         None
     } else {
         Some(Tag::from(
-            core::ffi::CStr::from_ptr(raw_ref.tag).to_string_lossy().into_owned(),
+            core::ffi::CStr::from_ptr(raw_ref.tag)
+                .to_string_lossy()
+                .into_owned(),
         ))
     };
     let range = TextRange::new(raw_ref.start, raw_ref.length);
@@ -754,7 +818,9 @@ unsafe fn decode_tag_hypotheses(array: *mut c_void, count: usize) -> Vec<TagHypo
         let tag = if raw.key.is_null() {
             String::new()
         } else {
-            core::ffi::CStr::from_ptr(raw.key).to_string_lossy().into_owned()
+            core::ffi::CStr::from_ptr(raw.key)
+                .to_string_lossy()
+                .into_owned()
         };
         values.push(TagHypothesis {
             tag: Tag::from(tag),

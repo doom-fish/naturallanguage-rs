@@ -391,11 +391,7 @@ extern "C" {
         out_buf: *mut f64,
         out_len: usize,
     ) -> bool;
-    pub fn nl_embedding_distance(
-        handle: *mut c_void,
-        a: *const c_char,
-        b: *const c_char,
-    ) -> f64;
+    pub fn nl_embedding_distance(handle: *mut c_void, a: *const c_char, b: *const c_char) -> f64;
     pub fn nl_embedding_neighbors_for_string(
         handle: *mut c_void,
         word: *const c_char,
@@ -405,8 +401,14 @@ extern "C" {
     ) -> bool;
     pub fn nl_embedding_neighbors_free(array: *mut c_void, count: usize);
 
-    pub fn nl_word_embedding_for_language_revision(language: *const c_char, revision: usize) -> *mut c_void;
-    pub fn nl_sentence_embedding_for_language_revision(language: *const c_char, revision: usize) -> *mut c_void;
+    pub fn nl_word_embedding_for_language_revision(
+        language: *const c_char,
+        revision: usize,
+    ) -> *mut c_void;
+    pub fn nl_sentence_embedding_for_language_revision(
+        language: *const c_char,
+        revision: usize,
+    ) -> *mut c_void;
     pub fn nl_embedding_with_contents_of_url(
         path: *const c_char,
         out_handle: *mut *mut c_void,
@@ -503,7 +505,11 @@ extern "C" {
         out_language: *mut *mut c_char,
         out_error: *mut *mut c_char,
     ) -> i32;
-    pub fn nl_gazetteer_data(handle: *mut c_void, out_bytes: *mut c_void, out_error: *mut *mut c_char) -> i32;
+    pub fn nl_gazetteer_data(
+        handle: *mut c_void,
+        out_bytes: *mut c_void,
+        out_error: *mut *mut c_char,
+    ) -> i32;
     pub fn nl_gazetteer_write_dictionary(
         entries: *const c_void,
         count: usize,
@@ -609,8 +615,16 @@ extern "C" {
         out_count: *mut usize,
         out_error: *mut *mut c_char,
     ) -> i32;
-    pub fn nl_contextual_embedding_revision(handle: *mut c_void, out_revision: *mut usize, out_error: *mut *mut c_char) -> i32;
-    pub fn nl_contextual_embedding_dimension(handle: *mut c_void, out_dimension: *mut usize, out_error: *mut *mut c_char) -> i32;
+    pub fn nl_contextual_embedding_revision(
+        handle: *mut c_void,
+        out_revision: *mut usize,
+        out_error: *mut *mut c_char,
+    ) -> i32;
+    pub fn nl_contextual_embedding_dimension(
+        handle: *mut c_void,
+        out_dimension: *mut usize,
+        out_error: *mut *mut c_char,
+    ) -> i32;
     pub fn nl_contextual_embedding_maximum_sequence_length(
         handle: *mut c_void,
         out_value: *mut usize,

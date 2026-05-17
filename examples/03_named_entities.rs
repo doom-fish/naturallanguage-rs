@@ -20,7 +20,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("  (no named entities found)");
         }
         for e in &entities {
-            println!("  {:>16?}: [{:>3}+{:>2}] {:?}", e.kind, e.start, e.length, e.text);
+            println!(
+                "  {:>16?}: [{:>3}+{:>2}] {:?}",
+                e.kind, e.start, e.length, e.text
+            );
         }
     }
     Ok(())

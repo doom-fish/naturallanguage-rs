@@ -108,12 +108,13 @@ impl Drop for Tokenizer {
 impl Tokenizer {
     /// Create a tokenizer for the requested unit.
     pub fn new(unit: TokenUnit) -> Result<Self, NLError> {
-        let handle = NonNull::new(unsafe { ffi::nl_tokenizer_create(unit as i32) }).ok_or_else(|| {
-            NLError::Unknown {
-                code: ffi::status::UNKNOWN,
-                message: "failed to create tokenizer".into(),
-            }
-        })?;
+        let handle =
+            NonNull::new(unsafe { ffi::nl_tokenizer_create(unit as i32) }).ok_or_else(|| {
+                NLError::Unknown {
+                    code: ffi::status::UNKNOWN,
+                    message: "failed to create tokenizer".into(),
+                }
+            })?;
         Ok(Self { handle })
     }
 
@@ -132,7 +133,8 @@ impl Tokenizer {
     pub fn string(&self) -> Result<Option<String>, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_tokenizer_string(self.handle.as_ptr(), &mut out, &mut error) };
+        let status =
+            unsafe { ffi::nl_tokenizer_string(self.handle.as_ptr(), &mut out, &mut error) };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) })
         } else {
@@ -154,7 +156,11 @@ impl Tokenizer {
         if status == ffi::status::OK {
             Ok(())
         } else {
-            Err(status_error(status, "tokenizer string update failed", error))
+            Err(status_error(
+                status,
+                "tokenizer string update failed",
+                error,
+            ))
         }
     }
 
@@ -168,7 +174,11 @@ impl Tokenizer {
         if status == ffi::status::OK {
             Ok(())
         } else {
-            Err(status_error(status, "tokenizer language update failed", error))
+            Err(status_error(
+                status,
+                "tokenizer language update failed",
+                error,
+            ))
         }
     }
 
@@ -187,7 +197,11 @@ impl Tokenizer {
         if status == ffi::status::OK {
             Ok(TextRange::new(range.start, range.length))
         } else {
-            Err(status_error(status, "tokenizer token_range_at_index failed", error))
+            Err(status_error(
+                status,
+                "tokenizer token_range_at_index failed",
+                error,
+            ))
         }
     }
 
@@ -207,7 +221,11 @@ impl Tokenizer {
         if status == ffi::status::OK {
             Ok(TextRange::new(out.start, out.length))
         } else {
-            Err(status_error(status, "tokenizer token_range_for_range failed", error))
+            Err(status_error(
+                status,
+                "tokenizer token_range_for_range failed",
+                error,
+            ))
         }
     }
 
@@ -233,13 +251,21 @@ impl Tokenizer {
             )
         };
         if status != ffi::status::OK {
-            return Err(status_error(status, "tokenizer tokens_in_range failed", error));
+            return Err(status_error(
+                status,
+                "tokenizer tokens_in_range failed",
+                error,
+            ));
         }
         Ok(unsafe { decode_token_spans(array, count) })
     }
 
     /// Rust callback wrapper around `enumerateTokensInRange:`.
-    pub fn enumerate_tokens_in_range<F>(&self, range: TextRange, mut callback: F) -> Result<(), NLError>
+    pub fn enumerate_tokens_in_range<F>(
+        &self,
+        range: TextRange,
+        mut callback: F,
+    ) -> Result<(), NLError>
     where
         F: FnMut(&TokenSpan) -> bool,
     {

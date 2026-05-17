@@ -57,15 +57,17 @@ pub use script::Script;
 pub use types::TextRange;
 
 #[cfg(feature = "language_detection")]
-pub use recognizer::{dominant_language, language_hypotheses, LanguageHypothesis, LanguageRecognizer};
+pub use recognizer::{
+    dominant_language, language_hypotheses, LanguageHypothesis, LanguageRecognizer,
+};
 
 #[cfg(feature = "tokenize")]
 pub use tokenizer::{tokenize, Token, TokenSpan, TokenUnit, Tokenizer, TokenizerAttributes};
 
 #[cfg(feature = "tag")]
 pub use tagger::{
-    named_entities, EntityKind, NamedEntity, Orthography, Tag, TagHypothesis, TagScheme, TaggedRange,
-    Tagger, TaggerAssetsResult, TaggerOptions,
+    named_entities, EntityKind, NamedEntity, Orthography, Tag, TagHypothesis, TagScheme,
+    TaggedRange, Tagger, TaggerAssetsResult, TaggerOptions,
 };
 
 #[cfg(feature = "embedding")]
@@ -85,28 +87,34 @@ pub use contextual_embedding::{
 
 /// Common imports.
 pub mod prelude {
-    pub use crate::error::NLError;
-    pub use crate::language::Language;
-    pub use crate::script::Script;
-    pub use crate::types::TextRange;
-    #[cfg(feature = "language_detection")]
-    pub use crate::recognizer::{dominant_language, language_hypotheses, LanguageHypothesis, LanguageRecognizer};
-    #[cfg(feature = "tokenize")]
-    pub use crate::tokenizer::{tokenize, Token, TokenSpan, TokenUnit, Tokenizer, TokenizerAttributes};
-    #[cfg(feature = "tag")]
-    pub use crate::tagger::{
-        named_entities, EntityKind, NamedEntity, Orthography, Tag, TagHypothesis, TagScheme,
-        TaggedRange, Tagger, TaggerAssetsResult, TaggerOptions,
-    };
-    #[cfg(feature = "embedding")]
-    pub use crate::embedding::{Distance, DistanceType, Embedding, EmbeddingDictionaryEntry, Neighbor};
-    #[cfg(feature = "gazetteer")]
-    pub use crate::gazetteer::Gazetteer;
-    #[cfg(feature = "model")]
-    pub use crate::model::{CoreMlModel, Model, ModelConfiguration, ModelType};
     #[cfg(feature = "contextual_embedding")]
     pub use crate::contextual_embedding::{
         ContextualEmbedding, ContextualEmbeddingAssetsResult, ContextualEmbeddingQuery,
         ContextualEmbeddingResult, TokenVector,
     };
+    #[cfg(feature = "embedding")]
+    pub use crate::embedding::{
+        Distance, DistanceType, Embedding, EmbeddingDictionaryEntry, Neighbor,
+    };
+    pub use crate::error::NLError;
+    #[cfg(feature = "gazetteer")]
+    pub use crate::gazetteer::Gazetteer;
+    pub use crate::language::Language;
+    #[cfg(feature = "model")]
+    pub use crate::model::{CoreMlModel, Model, ModelConfiguration, ModelType};
+    #[cfg(feature = "language_detection")]
+    pub use crate::recognizer::{
+        dominant_language, language_hypotheses, LanguageHypothesis, LanguageRecognizer,
+    };
+    pub use crate::script::Script;
+    #[cfg(feature = "tag")]
+    pub use crate::tagger::{
+        named_entities, EntityKind, NamedEntity, Orthography, Tag, TagHypothesis, TagScheme,
+        TaggedRange, Tagger, TaggerAssetsResult, TaggerOptions,
+    };
+    #[cfg(feature = "tokenize")]
+    pub use crate::tokenizer::{
+        tokenize, Token, TokenSpan, TokenUnit, Tokenizer, TokenizerAttributes,
+    };
+    pub use crate::types::TextRange;
 }

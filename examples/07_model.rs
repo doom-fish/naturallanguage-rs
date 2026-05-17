@@ -11,7 +11,10 @@ use naturallanguage::prelude::*;
 fn compile_model(source: &Path) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let output_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("target/example-output");
     fs::create_dir_all(&output_dir)?;
-    let compiled = output_dir.join(format!("{}.mlmodelc", source.file_stem().unwrap().to_string_lossy()));
+    let compiled = output_dir.join(format!(
+        "{}.mlmodelc",
+        source.file_stem().unwrap().to_string_lossy()
+    ));
     if compiled.exists() {
         fs::remove_dir_all(&compiled)?;
     }
@@ -59,7 +62,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         classifier_from_path.predicted_label_for_string("This is fantastic")?
     );
     for sample in ["I love this product", "This is terrible"] {
-        println!("  {sample:?} -> {:?}", classifier.predicted_label_for_string(sample)?);
+        println!(
+            "  {sample:?} -> {:?}",
+            classifier.predicted_label_for_string(sample)?
+        );
         println!(
             "    hypotheses = {:?}",
             classifier.predicted_label_hypotheses_for_string(sample, 2)?
@@ -80,7 +86,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         sequence_config.language()?,
         sequence_config.revision()
     );
-    println!("sequence labels = {:?}", sequence.predicted_labels_for_tokens(&tokens)?);
+    println!(
+        "sequence labels = {:?}",
+        sequence.predicted_labels_for_tokens(&tokens)?
+    );
     println!(
         "sequence hypotheses = {:?}",
         sequence.predicted_label_hypotheses_for_tokens(&tokens, 2)?

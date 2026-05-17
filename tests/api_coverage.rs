@@ -27,7 +27,11 @@ fn read(path: &Path) -> String {
 }
 
 fn read_files(paths: &[PathBuf]) -> String {
-    paths.iter().map(|path| read(path)).collect::<Vec<_>>().join("\n")
+    paths
+        .iter()
+        .map(|path| read(path))
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 fn rust_sources(files: &[&str]) -> String {
@@ -229,7 +233,12 @@ fn references_in_corpus(
         .collect()
 }
 
-fn report(name: &str, apple: &BTreeSet<String>, ours: &BTreeSet<String>, omitted: &BTreeSet<String>) {
+fn report(
+    name: &str,
+    apple: &BTreeSet<String>,
+    ours: &BTreeSet<String>,
+    omitted: &BTreeSet<String>,
+) {
     let wrapped: BTreeSet<&String> = apple.intersection(ours).collect();
     let missing: BTreeSet<&String> = apple
         .difference(ours)
@@ -329,7 +338,12 @@ fn tokenizer_enum_coverage() {
         .into_iter()
         .map(|case| to_upper_snake(&case))
         .collect::<BTreeSet<_>>();
-    report("NLTokenizerAttributes", &attributes, &consts, &BTreeSet::new());
+    report(
+        "NLTokenizerAttributes",
+        &attributes,
+        &consts,
+        &BTreeSet::new(),
+    );
 }
 
 #[test]
@@ -404,7 +418,12 @@ fn contextual_embedding_enum_coverage() {
         })
         .cloned()
         .collect::<BTreeSet<_>>();
-    report("NLContextualEmbeddingKey constants", &keys, &ours, &BTreeSet::new());
+    report(
+        "NLContextualEmbeddingKey constants",
+        &keys,
+        &ours,
+        &BTreeSet::new(),
+    );
 }
 
 #[test]
@@ -424,13 +443,22 @@ fn nl_language_recognizer_coverage() {
             ("init", &["nl_language_recognizer_create"]),
             ("processString:", &["nl_language_recognizer_process_string"]),
             ("reset", &["nl_language_recognizer_reset"]),
-            ("dominantLanguage", &["nl_language_recognizer_dominant_language"]),
+            (
+                "dominantLanguage",
+                &["nl_language_recognizer_dominant_language"],
+            ),
             (
                 "languageHypothesesWithMaximum:",
-                &["nl_language_recognizer_language_hypotheses", "nl_language_hypotheses"],
+                &[
+                    "nl_language_recognizer_language_hypotheses",
+                    "nl_language_hypotheses",
+                ],
             ),
             ("languageHints", &["nl_language_recognizer_language_hints"]),
-            ("languageConstraints", &["nl_language_recognizer_language_constraints"]),
+            (
+                "languageConstraints",
+                &["nl_language_recognizer_language_constraints"],
+            ),
         ],
         &BTreeSet::new(),
     );
@@ -451,11 +479,20 @@ fn nl_tokenizer_coverage() {
         &[
             ("initWithUnit:", &["nl_tokenizer_create"]),
             ("unit", &["nl_tokenizer_unit"]),
-            ("string", &["nl_tokenizer_string", "nl_tokenizer_set_string"]),
+            (
+                "string",
+                &["nl_tokenizer_string", "nl_tokenizer_set_string"],
+            ),
             ("setLanguage:", &["nl_tokenizer_set_language"]),
             ("tokenRangeAtIndex:", &["nl_tokenizer_token_range_at_index"]),
-            ("tokenRangeForRange:", &["nl_tokenizer_token_range_for_range"]),
-            ("tokensForRange:", &["nl_tokenizer_tokens_in_range", "tokens_in_range"]),
+            (
+                "tokenRangeForRange:",
+                &["nl_tokenizer_token_range_for_range"],
+            ),
+            (
+                "tokensForRange:",
+                &["nl_tokenizer_tokens_in_range", "tokens_in_range"],
+            ),
             (
                 "enumerateTokensInRange:usingBlock:",
                 &["nl_tokenizer_tokens_in_range", "enumerate_tokens_in_range"],
@@ -485,15 +522,27 @@ fn nl_tagger_coverage() {
                 "availableTagSchemesForUnit:language:",
                 &["nl_tagger_available_tag_schemes"],
             ),
-            ("tokenRangeAtIndex:unit:", &["nl_tagger_token_range_at_index"]),
-            ("tokenRangeForRange:unit:", &["nl_tagger_token_range_for_range"]),
+            (
+                "tokenRangeAtIndex:unit:",
+                &["nl_tagger_token_range_at_index"],
+            ),
+            (
+                "tokenRangeForRange:unit:",
+                &["nl_tagger_token_range_for_range"],
+            ),
             ("dominantLanguage", &["nl_tagger_dominant_language"]),
             (
                 "enumerateTagsInRange:unit:scheme:options:usingBlock:",
                 &["nl_tagger_tags_in_range", "enumerate_tags_in_range"],
             ),
-            ("tagAtIndex:unit:scheme:tokenRange:", &["nl_tagger_tag_at_index"]),
-            ("tagsInRange:unit:scheme:options:tokenRanges:", &["nl_tagger_tags_in_range"]),
+            (
+                "tagAtIndex:unit:scheme:tokenRange:",
+                &["nl_tagger_tag_at_index"],
+            ),
+            (
+                "tagsInRange:unit:scheme:options:tokenRanges:",
+                &["nl_tagger_tags_in_range"],
+            ),
             (
                 "tagHypothesesAtIndex:unit:scheme:maximumCount:tokenRange:",
                 &["nl_tagger_tag_hypotheses_at_index"],
@@ -529,7 +578,10 @@ fn nl_embedding_coverage() {
         "NLEmbedding",
         &corpus,
         &[
-            ("wordEmbeddingForLanguage:", &["nl_word_embedding_for_language"]),
+            (
+                "wordEmbeddingForLanguage:",
+                &["nl_word_embedding_for_language"],
+            ),
             (
                 "wordEmbeddingForLanguage:revision:",
                 &["nl_word_embedding_for_language_revision"],
@@ -542,7 +594,10 @@ fn nl_embedding_coverage() {
                 "sentenceEmbeddingForLanguage:revision:",
                 &["nl_sentence_embedding_for_language_revision"],
             ),
-            ("embeddingWithContentsOfURL:error:", &["nl_embedding_with_contents_of_url"]),
+            (
+                "embeddingWithContentsOfURL:error:",
+                &["nl_embedding_with_contents_of_url"],
+            ),
             ("containsString:", &["nl_embedding_contains_string"]),
             (
                 "distanceBetweenString:andString:distanceType:",
@@ -564,18 +619,27 @@ fn nl_embedding_coverage() {
                 "neighborsForString:maximumCount:maximumDistance:distanceType:",
                 &["neighbors_with_limit"],
             ),
-            ("vectorForString:", &["nl_embedding_vector_for_string", "pub fn vector_for("]),
+            (
+                "vectorForString:",
+                &["nl_embedding_vector_for_string", "pub fn vector_for("],
+            ),
             (
                 "enumerateNeighborsForVector:maximumCount:distanceType:usingBlock:",
                 &["enumerate_neighbors_for_vector"],
             ),
             (
                 "enumerateNeighborsForVector:maximumCount:maximumDistance:distanceType:usingBlock:",
-                &["neighbors_for_vector_with_limit", "enumerate_neighbors_for_vector"],
+                &[
+                    "neighbors_for_vector_with_limit",
+                    "enumerate_neighbors_for_vector",
+                ],
             ),
             (
                 "neighborsForVector:maximumCount:distanceType:",
-                &["pub fn neighbors_for_vector(", "neighbors_for_vector_with_limit"],
+                &[
+                    "pub fn neighbors_for_vector(",
+                    "neighbors_for_vector_with_limit",
+                ],
             ),
             (
                 "neighborsForVector:maximumCount:maximumDistance:distanceType:",
@@ -673,8 +737,14 @@ fn nl_model_coverage() {
                 &["nl_model_with_mlmodel", "pub fn from_core_ml_model("],
             ),
             ("configuration", &["nl_model_configuration"]),
-            ("predictedLabelForString:", &["nl_model_predicted_label_for_string"]),
-            ("predictedLabelsForTokens:", &["nl_model_predicted_labels_for_tokens"]),
+            (
+                "predictedLabelForString:",
+                &["nl_model_predicted_label_for_string"],
+            ),
+            (
+                "predictedLabelsForTokens:",
+                &["nl_model_predicted_labels_for_tokens"],
+            ),
             (
                 "predictedLabelHypothesesForString:maximumCount:",
                 &["nl_model_predicted_label_hypotheses_for_string"],
@@ -746,7 +816,10 @@ fn nl_contextual_embedding_coverage() {
                 "contextualEmbeddingWithScript:",
                 &["nl_contextual_embedding_with_script"],
             ),
-            ("modelIdentifier", &["nl_contextual_embedding_model_identifier"]),
+            (
+                "modelIdentifier",
+                &["nl_contextual_embedding_model_identifier"],
+            ),
             ("languages", &["nl_contextual_embedding_languages"]),
             ("scripts", &["nl_contextual_embedding_scripts"]),
             ("revision", &["nl_contextual_embedding_revision"]),
@@ -755,8 +828,14 @@ fn nl_contextual_embedding_coverage() {
                 "maximumSequenceLength",
                 &["nl_contextual_embedding_maximum_sequence_length"],
             ),
-            ("loadWithError:", &["nl_contextual_embedding_load", "pub fn load("]),
-            ("unload", &["nl_contextual_embedding_unload", "pub fn unload("]),
+            (
+                "loadWithError:",
+                &["nl_contextual_embedding_load", "pub fn load("],
+            ),
+            (
+                "unload",
+                &["nl_contextual_embedding_unload", "pub fn unload("],
+            ),
             (
                 "embeddingResultForString:language:error:",
                 &["nl_contextual_embedding_result_for_string"],
@@ -808,7 +887,8 @@ fn nl_contextual_embedding_result_coverage() {
 
 #[test]
 fn nl_data_asset_absent_from_current_macos_sdk() {
-    let headers_dir = sdk_root().join("System/Library/Frameworks/NaturalLanguage.framework/Headers");
+    let headers_dir =
+        sdk_root().join("System/Library/Frameworks/NaturalLanguage.framework/Headers");
     assert!(!headers_dir.join("NLDataAsset.h").exists());
 
     let mut matches = Vec::new();

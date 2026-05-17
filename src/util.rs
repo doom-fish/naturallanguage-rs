@@ -11,7 +11,9 @@ pub unsafe fn take_string(ptr: *mut c_char) -> Option<String> {
     if ptr.is_null() {
         None
     } else {
-        let value = core::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned();
+        let value = core::ffi::CStr::from_ptr(ptr)
+            .to_string_lossy()
+            .into_owned();
         ffi::nl_string_free(ptr);
         Some(value)
     }
@@ -37,7 +39,9 @@ pub unsafe fn decode_string_array(array: *mut c_void, count: usize) -> Vec<Strin
         values.push(if value.is_null() {
             String::new()
         } else {
-            core::ffi::CStr::from_ptr(value).to_string_lossy().into_owned()
+            core::ffi::CStr::from_ptr(value)
+                .to_string_lossy()
+                .into_owned()
         });
     }
     ffi::nl_strings_free(array, count);

@@ -10,7 +10,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("== eager helper ==");
     for token in tokenize(text, TokenUnit::Word)? {
-        println!("  [{:>3}+{:>2}] {:?}", token.start, token.length, token.text);
+        println!(
+            "  [{:>3}+{:>2}] {:?}",
+            token.start, token.length, token.text
+        );
     }
 
     let mut tokenizer = Tokenizer::new(TokenUnit::Word)?;
@@ -18,8 +21,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tokenizer.set_language(&Language::ENGLISH)?;
 
     println!("\nunit = {:?}", tokenizer.unit());
-    println!("token at utf16 index 1 = {:?}", tokenizer.token_range_at_index(1)?);
-    println!("token range covering [0+5] = {:?}", tokenizer.token_range_for_range(TextRange::new(0, 5))?);
+    println!(
+        "token at utf16 index 1 = {:?}",
+        tokenizer.token_range_at_index(1)?
+    );
+    println!(
+        "token range covering [0+5] = {:?}",
+        tokenizer.token_range_for_range(TextRange::new(0, 5))?
+    );
 
     println!("\n== object API tokens ==");
     for token in tokenizer.tokens_in_range(full)? {
