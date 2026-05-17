@@ -1,6 +1,6 @@
 # NaturalLanguage.framework coverage audit
 
-Audit target: `naturallanguage` `v0.4.0` against `MacOSX26.2.sdk` plus `cargo expand --lib > target/cargo-expand-lib.rs`.
+Audit target: `naturallanguage` `v0.4.1` against `MacOSX26.2.sdk` plus `cargo expand --lib > target/cargo-expand-lib.rs`.
 
 Legend: ✅ implemented · 🟡 partial · ⏭️ skipped
 

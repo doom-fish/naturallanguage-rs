@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.4.1] - 2026-05-17
+
+### Added
+
+- Seven end-to-end integration tests under `tests/`, covering `NLLanguageRecognizer`, `NLTokenizer`, `NLTagger`, `NLEmbedding`, `NLContextualEmbedding`, `NLModel`, and `NLGazetteer`.
+
+### Changed
+
+- Bumped the crate and release metadata to `v0.4.1`.
+
 ## [0.4.0] - 2026-05-16
 
 ### Added

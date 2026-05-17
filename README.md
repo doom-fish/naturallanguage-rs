@@ -2,7 +2,7 @@
 
 Safe Rust bindings for Apple's [NaturalLanguage](https://developer.apple.com/documentation/naturallanguage) framework on macOS — language detection, tokenization, tagging, embeddings, gazetteers, and custom/Core ML-backed language models.
 
-> **Status:** experimental. `v0.4.0` audits the full public `NaturalLanguage.framework` header surface in the current macOS 26.2 SDK against `cargo expand --lib`, with row-by-row results in [`COVERAGE.md`](COVERAGE.md). `NLDataAsset` is not present in the current macOS headers, so it is recorded there as skipped/absent. Availability-gated APIs return `NLError::Unsupported` on older macOS releases.
+> **Status:** experimental. `v0.4.1` audits the full public `NaturalLanguage.framework` header surface in the current macOS 26.2 SDK against `cargo expand --lib`, with row-by-row results in [`COVERAGE.md`](COVERAGE.md). `NLDataAsset` is not present in the current macOS headers, so it is recorded there as skipped/absent. Availability-gated APIs return `NLError::Unsupported` on older macOS releases.
 
 ## Quick start
 
