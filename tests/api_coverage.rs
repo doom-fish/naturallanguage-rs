@@ -566,6 +566,7 @@ fn nl_tagger_coverage() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn nl_embedding_coverage() {
     let corpus = format!(
         "{}\n{}",
