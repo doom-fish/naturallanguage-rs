@@ -2,7 +2,7 @@
 
 Safe Rust bindings for Apple's [NaturalLanguage](https://developer.apple.com/documentation/naturallanguage) framework on macOS — language detection, tokenization, tagging, embeddings, gazetteers, and custom/Core ML-backed language models.
 
-> **Status:** experimental. `v0.4.1` audits the full public `NaturalLanguage.framework` header surface in the current macOS 26.2 SDK against `cargo expand --lib`, with row-by-row results in [`COVERAGE.md`](COVERAGE.md). `NLDataAsset` is not present in the current macOS headers, so it is recorded there as skipped/absent. Availability-gated APIs return `NLError::Unsupported` on older macOS releases.
+> **Status:** experimental. `v0.4.3` audits the full public `NaturalLanguage.framework` header surface in `MacOSX26.5.sdk` against `cargo expand --lib`, adds executor-agnostic futures for the one-shot asset-request completion handlers, and keeps row-by-row results in [`COVERAGE.md`](COVERAGE.md). `NLDataAsset` is not present in the current macOS headers, so it is recorded there as skipped/absent. Availability-gated APIs return `NLError::Unsupported` on older macOS releases.
 
 ## Quick start
 
@@ -41,6 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 - `NLGazetteer` creation/loading/serialization APIs
 - `NLModel` and `NLModelConfiguration` wrappers plus minimal `MLModel` interop
 - `NLContextualEmbedding` and `NLContextualEmbeddingResult` (macOS 14+)
+- Optional executor-agnostic futures for `NLTagger` / `NLContextualEmbedding` asset requests
 
 ## Feature flags
 
@@ -53,6 +54,7 @@ All features are enabled by default.
 - `gazetteer` — `NLGazetteer`
 - `model` — `NLModel` / `MLModel`
 - `contextual_embedding` — `NLContextualEmbedding`
+- `async` — executor-agnostic futures for one-shot asset requests
 
 ## Smoke examples
 
@@ -82,7 +84,8 @@ The crate is validated with:
 - [x] Full public header coverage for the current `NaturalLanguage.framework` SDK, with the audit published in [`COVERAGE.md`](COVERAGE.md)
 - [x] Header-based API coverage tests for constants, enums, and object APIs
 - [x] End-to-end smoke examples for each major feature area
-- [ ] Higher-level async/convenience layers on top of the low-level bindings
+- [x] Executor-agnostic async futures for one-shot asset requests
+- [ ] Broader async/convenience layers on top of the low-level bindings
 
 Pairs naturally with [`speech`](https://github.com/doom-fish/speech-rs) and [`foundation-models`](https://github.com/doom-fish/foundation-models-rs) for on-device transcription → understanding pipelines.
 

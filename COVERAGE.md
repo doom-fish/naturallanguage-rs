@@ -1,6 +1,6 @@
 # NaturalLanguage.framework coverage audit
 
-Audit target: `naturallanguage` `v0.4.1` against `MacOSX26.2.sdk` plus `cargo expand --lib > target/cargo-expand-lib.rs`.
+Audit target: `naturallanguage` `v0.4.3` against `MacOSX26.5.sdk` plus `cargo expand --lib > target/cargo-expand-lib.rs`.
 
 Legend: ✅ implemented · 🟡 partial · ⏭️ skipped
 
@@ -9,6 +9,7 @@ Legend: ✅ implemented · 🟡 partial · ⏭️ skipped
 - `NLDataAsset` is not present in the current macOS `NaturalLanguage.framework` headers.
 - `NLEmbedding.getVector:forString:` is `NS_SWIFT_UNAVAILABLE` in Apple's headers.
 - `NLContextualEmbedding.init` and `NLContextualEmbeddingResult.init` are `NS_UNAVAILABLE` in Apple's headers.
+- The optional `async` feature adds executor-agnostic futures for the one-shot `requestAssets...` completion-handler APIs.
 
 ## NLLanguage constants
 
@@ -265,7 +266,7 @@ Legend: ✅ implemented · 🟡 partial · ⏭️ skipped
 | `gazetteersForTagScheme:` | ✅ implemented |  |
 | `initWithTagSchemes:` | ✅ implemented |  |
 | `modelsForTagScheme:` | ✅ implemented |  |
-| `requestAssetsForLanguage:tagScheme:completionHandler:` | ✅ implemented |  |
+| `requestAssetsForLanguage:tagScheme:completionHandler:` | ✅ implemented | `Tagger::request_assets` plus `Tagger::request_assets_async` behind the optional `async` feature. |
 | `setGazetteers:forTagScheme:` | ✅ implemented |  |
 | `setLanguage:range:` | ✅ implemented |  |
 | `setModels:forTagScheme:` | ✅ implemented |  |
@@ -360,7 +361,7 @@ Legend: ✅ implemented · 🟡 partial · ⏭️ skipped
 | `loadWithError:` | ✅ implemented |  |
 | `maximumSequenceLength` | ✅ implemented |  |
 | `modelIdentifier` | ✅ implemented |  |
-| `requestEmbeddingAssetsWithCompletionHandler:` | ✅ implemented |  |
+| `requestEmbeddingAssetsWithCompletionHandler:` | ✅ implemented | `ContextualEmbedding::request_embedding_assets` plus `request_embedding_assets_async` behind the optional `async` feature. |
 | `revision` | ✅ implemented |  |
 | `scripts` | ✅ implemented |  |
 | `unload` | ✅ implemented |  |
@@ -380,5 +381,5 @@ Legend: ✅ implemented · 🟡 partial · ⏭️ skipped
 
 | Symbol | Status | Notes |
 | --- | --- | --- |
-| `NLDataAsset` | ⏭️ skipped | No NLDataAsset symbol exists anywhere in the current macOS 26.2 NaturalLanguage.framework headers. |
+| `NLDataAsset` | ⏭️ skipped | No NLDataAsset symbol exists anywhere in the current macOS 26.5 NaturalLanguage.framework headers. |
 

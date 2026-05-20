@@ -3,6 +3,15 @@
 use core::ffi::{c_char, c_void};
 use std::ptr::{self, NonNull};
 
+#[cfg(feature = "async")]
+use doom_fish_utils::completion::{AsyncCompletion, AsyncCompletionFuture};
+#[cfg(feature = "async")]
+use std::future::Future;
+#[cfg(feature = "async")]
+use std::pin::Pin;
+#[cfg(feature = "async")]
+use std::task::{Context, Poll};
+
 use crate::error::NLError;
 use crate::ffi;
 use crate::language::Language;
@@ -25,6 +34,36 @@ pub enum ContextualEmbeddingAssetsResult {
     Available = 0,
     NotAvailable = 1,
     Error = 2,
+}
+
+#[cfg(feature = "async")]
+/// Future returned by [`ContextualEmbedding::request_embedding_assets_async`].
+pub struct ContextualEmbeddingAssetsFuture {
+    inner: AsyncCompletionFuture<Result<ContextualEmbeddingAssetsResult, NLError>>,
+}
+
+#[cfg(feature = "async")]
+impl std::fmt::Debug for ContextualEmbeddingAssetsFuture {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ContextualEmbeddingAssetsFuture")
+            .finish_non_exhaustive()
+    }
+}
+
+#[cfg(feature = "async")]
+impl Future for ContextualEmbeddingAssetsFuture {
+    type Output = Result<ContextualEmbeddingAssetsResult, NLError>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        Pin::new(&mut self.inner).poll(cx).map(|result| {
+            result.unwrap_or_else(|message| {
+                Err(NLError::Unknown {
+                    code: ffi::status::UNKNOWN,
+                    message,
+                })
+            })
+        })
+    }
 }
 
 /// One contextual token vector.
@@ -182,6 +221,15 @@ impl ContextualEmbeddingResult {
 #[derive(Debug)]
 pub struct ContextualEmbedding {
     handle: NonNull<c_void>,
+}
+
+impl Clone for ContextualEmbedding {
+    fn clone(&self) -> Self {
+        let handle = unsafe { ffi::nl_object_retain(self.handle.as_ptr()) };
+        Self {
+            handle: NonNull::new(handle).expect("nl_object_retain returned null"),
+        }
+    }
 }
 
 // SAFETY: ContextualEmbedding wraps an Objective-C object handle from NaturalLanguage.framework,
@@ -502,6 +550,23 @@ impl ContextualEmbedding {
                 error,
             ))
         }
+    }
+
+    #[cfg(feature = "async")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
+    #[must_use]
+    pub fn request_embedding_assets_async(&self) -> ContextualEmbeddingAssetsFuture {
+        let embedding = self.clone();
+        let (future, ctx) =
+            AsyncCompletion::<Result<ContextualEmbeddingAssetsResult, NLError>>::create();
+        let ctx = ctx as usize;
+        std::thread::spawn(move || unsafe {
+            AsyncCompletion::complete_ok(
+                ctx as *mut c_void,
+                embedding.request_embedding_assets(),
+            );
+        });
+        ContextualEmbeddingAssetsFuture { inner: future }
     }
 }
 

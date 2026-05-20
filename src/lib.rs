@@ -51,6 +51,10 @@ pub mod model;
 #[cfg_attr(docsrs, doc(cfg(feature = "contextual_embedding")))]
 pub mod contextual_embedding;
 
+#[cfg(feature = "async")]
+#[cfg_attr(docsrs, doc(cfg(feature = "async")))]
+pub mod async_api;
+
 pub use error::NLError;
 pub use language::Language;
 pub use script::Script;

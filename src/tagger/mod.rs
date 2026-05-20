@@ -5,6 +5,15 @@ use std::collections::BTreeMap;
 use std::ffi::CString;
 use std::ptr::{self, NonNull};
 
+#[cfg(feature = "async")]
+use doom_fish_utils::completion::{AsyncCompletion, AsyncCompletionFuture};
+#[cfg(feature = "async")]
+use std::future::Future;
+#[cfg(feature = "async")]
+use std::pin::Pin;
+#[cfg(feature = "async")]
+use std::task::{Context, Poll};
+
 use crate::error::NLError;
 use crate::ffi;
 use crate::language::Language;
@@ -113,6 +122,35 @@ pub enum TaggerAssetsResult {
     Available = 0,
     NotAvailable = 1,
     Error = 2,
+}
+
+#[cfg(feature = "async")]
+/// Future returned by [`Tagger::request_assets_async`].
+pub struct TaggerAssetsFuture {
+    inner: AsyncCompletionFuture<Result<TaggerAssetsResult, NLError>>,
+}
+
+#[cfg(feature = "async")]
+impl std::fmt::Debug for TaggerAssetsFuture {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TaggerAssetsFuture").finish_non_exhaustive()
+    }
+}
+
+#[cfg(feature = "async")]
+impl Future for TaggerAssetsFuture {
+    type Output = Result<TaggerAssetsResult, NLError>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        Pin::new(&mut self.inner).poll(cx).map(|result| {
+            result.unwrap_or_else(|message| {
+                Err(NLError::Unknown {
+                    code: ffi::status::UNKNOWN,
+                    message,
+                })
+            })
+        })
+    }
 }
 
 /// Lightweight orthography description for `NLTagger::set_orthography`.
@@ -722,6 +760,23 @@ impl Tagger {
         } else {
             Err(status_error(status, "tagger asset request failed", error))
         }
+    }
+
+    #[cfg(feature = "async")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
+    #[must_use]
+    pub fn request_assets_async(language: &Language, tag_scheme: &TagScheme) -> TaggerAssetsFuture {
+        let language = language.clone();
+        let tag_scheme = tag_scheme.clone();
+        let (future, ctx) = AsyncCompletion::<Result<TaggerAssetsResult, NLError>>::create();
+        let ctx = ctx as usize;
+        std::thread::spawn(move || unsafe {
+            AsyncCompletion::complete_ok(
+                ctx as *mut c_void,
+                Self::request_assets(&language, &tag_scheme),
+            );
+        });
+        TaggerAssetsFuture { inner: future }
     }
 }
 

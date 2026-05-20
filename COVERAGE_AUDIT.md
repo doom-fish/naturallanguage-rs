@@ -1,4 +1,4 @@
-# naturallanguage coverage audit (vs MacOSX26.2.sdk)
+# naturallanguage coverage audit (vs MacOSX26.5.sdk)
 
 SDK_PUBLIC_SYMBOLS: 256
 VERIFIED: 253
@@ -10,6 +10,7 @@ Notes:
 - `NLDataAsset` is absent from the current `NaturalLanguage.framework` headers, so it is not counted in `SDK_PUBLIC_SYMBOLS`.
 - `VERIFIED` entries were cross-checked against the public Rust API (`src/**/*.rs`), Swift bridge thunks (`swift-bridge/Sources/**/*.swift`), `COVERAGE.md`, and `tests/api_coverage.rs`.
 - `EXEMPT` entries are public SDK members intentionally skipped because Apple marks them unavailable to the bridge layer.
+- The optional `async` feature adds executor-agnostic futures for the one-shot `requestAssets...` completion-handler APIs.
 
 ## 🟢 VERIFIED
 
@@ -191,7 +192,7 @@ Notes:
 | `gazetteersForTagScheme:` | method | `NLTagger.h` | `Tagger::gazetteers_for_tag_scheme` |
 | `initWithTagSchemes:` | initializer | `NLTagger.h` | `Tagger::new` |
 | `modelsForTagScheme:` | method | `NLTagger.h` | `Tagger::models_for_tag_scheme` |
-| `requestAssetsForLanguage:tagScheme:completionHandler:` | method | `NLTagger.h` | `Tagger::request_assets` |
+| `requestAssetsForLanguage:tagScheme:completionHandler:` | method | `NLTagger.h` | `Tagger::request_assets` / `Tagger::request_assets_async` |
 | `setGazetteers:forTagScheme:` | method | `NLTagger.h` | `Tagger::set_gazetteers` |
 | `setLanguage:range:` | method | `NLTagger.h` | `Tagger::set_language` |
 | `setModels:forTagScheme:` | method | `NLTagger.h` | `Tagger::set_models` |
@@ -259,7 +260,7 @@ Notes:
 | `loadWithError:` | method | `NLContextualEmbedding.h` | `ContextualEmbedding::load` |
 | `maximumSequenceLength` | property | `NLContextualEmbedding.h` | `ContextualEmbedding::maximum_sequence_length` |
 | `modelIdentifier` | property | `NLContextualEmbedding.h` | `ContextualEmbedding::model_identifier` |
-| `requestEmbeddingAssetsWithCompletionHandler:` | method | `NLContextualEmbedding.h` | `ContextualEmbedding::request_embedding_assets` |
+| `requestEmbeddingAssetsWithCompletionHandler:` | method | `NLContextualEmbedding.h` | `ContextualEmbedding::request_embedding_assets` / `request_embedding_assets_async` |
 | `revision` | property | `NLContextualEmbedding.h` | `ContextualEmbedding::revision` |
 | `scripts` | property | `NLContextualEmbedding.h` | `ContextualEmbedding::scripts` |
 | `unload` | method | `NLContextualEmbedding.h` | `ContextualEmbedding::unload` |

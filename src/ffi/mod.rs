@@ -129,6 +129,7 @@ pub struct CoreMlModelRefRaw {
 
 extern "C" {
     pub fn nl_string_free(s: *mut c_char);
+    pub fn nl_object_retain(handle: *mut c_void) -> *mut c_void;
     pub fn nl_object_release(handle: *mut c_void);
 
     pub fn nl_strings_free(array: *mut c_void, count: usize);

@@ -237,6 +237,13 @@ func nlCopyDoubles(_ values: [Double]) -> UnsafeMutablePointer<Double>? {
     return buffer
 }
 
+@_cdecl("nl_object_retain")
+public func nl_object_retain(_ handle: UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? {
+    guard let handle else { return nil }
+    let object = Unmanaged<AnyObject>.fromOpaque(handle).takeUnretainedValue()
+    return nlRetain(object)
+}
+
 @_cdecl("nl_object_release")
 public func nl_object_release(_ handle: UnsafeMutableRawPointer?) {
     guard let handle else { return }

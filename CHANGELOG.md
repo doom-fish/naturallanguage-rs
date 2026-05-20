@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.3] - 2026-05-20
+
+- Phase 32 completeness + async sweep.
+- Added the optional `async` feature/module with executor-agnostic futures for `NLTagger.requestAssetsForLanguage(_:tagScheme:completionHandler:)` and `NLContextualEmbedding.requestEmbeddingAssetsWithCompletionHandler(_:)`.
+- Added retained cloning support for `ContextualEmbedding` handles and refreshed the coverage docs against `MacOSX26.5.sdk`.
+
 ## [0.4.2] - 2026-05-17
 
 ### Changed
