@@ -8,15 +8,7 @@ pub fn cstring_arg(value: &str, name: &str) -> Result<CString, NLError> {
 }
 
 pub unsafe fn take_string(ptr: *mut c_char) -> Option<String> {
-    if ptr.is_null() {
-        None
-    } else {
-        let value = core::ffi::CStr::from_ptr(ptr)
-            .to_string_lossy()
-            .into_owned();
-        ffi::nl_string_free(ptr);
-        Some(value)
-    }
+    doom_fish_utils::ffi_string::take_owned_cstring_c(ptr, |p| ffi::nl_string_free(p))
 }
 
 pub fn status_error(code: i32, fallback: &str, error: *mut c_char) -> NLError {
