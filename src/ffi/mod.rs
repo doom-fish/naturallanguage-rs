@@ -127,10 +127,83 @@ pub struct CoreMlModelRefRaw {
     _private: [u8; 0],
 }
 
+// MARK: - ABI layout assertions
+//
+// These `#[repr(C)]` structs are marshalled across the Rust <-> Swift `@_cdecl`
+// FFI boundary (mostly via packed buffers the other side reinterprets). If a
+// field type, order, or padding ever drifts from what the Swift bridge expects,
+// the data silently corrupts at runtime. The compile-time assertions below pin
+// the exact size and alignment of each struct so accidental layout changes fail
+// the build instead. If you change a layout here you MUST mirror it in the
+// matching Swift struct (Core.swift / NaturalLanguage.swift); the cross-language
+// `nl_verify_ffi_layout` check in `tests/ffi_layout_tests.rs` guards that too.
+//
+// `offset_of!` is intentionally not used: the crate MSRV is 1.76 and
+// `core::mem::offset_of!` only stabilised in 1.77.
+use core::mem::{align_of, size_of};
+
+const _: () = assert!(size_of::<TextRangeRaw>() == 16);
+const _: () = assert!(align_of::<TextRangeRaw>() == 8);
+
+const _: () = assert!(size_of::<LanguageHypothesisRaw>() == 16);
+const _: () = assert!(align_of::<LanguageHypothesisRaw>() == 8);
+
+const _: () = assert!(size_of::<LanguageHypothesisRefRaw>() == 16);
+const _: () = assert!(align_of::<LanguageHypothesisRefRaw>() == 8);
+
+const _: () = assert!(size_of::<StringRaw>() == 8);
+const _: () = assert!(align_of::<StringRaw>() == 8);
+
+const _: () = assert!(size_of::<StringDoubleRaw>() == 16);
+const _: () = assert!(align_of::<StringDoubleRaw>() == 8);
+
+const _: () = assert!(size_of::<TokenRaw>() == 24);
+const _: () = assert!(align_of::<TokenRaw>() == 8);
+
+const _: () = assert!(size_of::<TokenSpanRaw>() == 32);
+const _: () = assert!(align_of::<TokenSpanRaw>() == 8);
+
+const _: () = assert!(size_of::<TagSpanRaw>() == 32);
+const _: () = assert!(align_of::<TagSpanRaw>() == 8);
+
+const _: () = assert!(size_of::<NamedEntityRaw>() == 32);
+const _: () = assert!(align_of::<NamedEntityRaw>() == 8);
+
+const _: () = assert!(size_of::<BytesRaw>() == 16);
+const _: () = assert!(align_of::<BytesRaw>() == 8);
+
+const _: () = assert!(size_of::<EmbeddingNeighborRaw>() == 16);
+const _: () = assert!(align_of::<EmbeddingNeighborRaw>() == 8);
+
+const _: () = assert!(size_of::<EmbeddingVectorEntryRefRaw>() == 24);
+const _: () = assert!(align_of::<EmbeddingVectorEntryRefRaw>() == 8);
+
+const _: () = assert!(size_of::<LabelTermRefRaw>() == 16);
+const _: () = assert!(align_of::<LabelTermRefRaw>() == 8);
+
+const _: () = assert!(size_of::<OrthographyEntryRefRaw>() == 16);
+const _: () = assert!(align_of::<OrthographyEntryRefRaw>() == 8);
+
+const _: () = assert!(size_of::<TokenVectorRaw>() == 32);
+const _: () = assert!(align_of::<TokenVectorRaw>() == 8);
+
+const _: () = assert!(size_of::<HypothesisSetRaw>() == 16);
+const _: () = assert!(align_of::<HypothesisSetRaw>() == 8);
+
+const _: () = assert!(size_of::<CoreMlModelRefRaw>() == 0);
+const _: () = assert!(align_of::<CoreMlModelRefRaw>() == 1);
+
 extern "C" {
     pub fn nl_string_free(s: *mut c_char);
     pub fn nl_object_retain(handle: *mut c_void) -> *mut c_void;
     pub fn nl_object_release(handle: *mut c_void);
+
+    /// Cross-language ABI check implemented in the Swift bridge.
+    ///
+    /// Returns `true` only if the Swift `MemoryLayout` (size, stride and
+    /// alignment) of every shared FFI struct matches the values pinned on the
+    /// Rust side. Verified by `tests/ffi_layout_tests.rs`.
+    pub fn nl_verify_ffi_layout() -> bool;
 
     pub fn nl_strings_free(array: *mut c_void, count: usize);
     pub fn nl_string_doubles_free(array: *mut c_void, count: usize);

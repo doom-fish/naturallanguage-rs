@@ -14,8 +14,7 @@ let package = Package(
     targets: [
         .target(
             name: "NaturalLanguageBridge",
-            path: "Sources/NaturalLanguageBridge",
-            publicHeadersPath: "include"
+            path: "Sources/NaturalLanguageBridge"
         ),
     ]
 )

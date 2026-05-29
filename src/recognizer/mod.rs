@@ -6,6 +6,7 @@ use std::ptr::{self, NonNull};
 use crate::error::NLError;
 use crate::ffi;
 use crate::language::Language;
+use crate::retained::nl_retained;
 use crate::util::{cstring_arg, decode_string_array, status_error, take_string};
 
 /// One ranked language hypothesis returned by [`language_hypotheses`] or used
@@ -32,11 +33,7 @@ unsafe impl Send for LanguageRecognizer {}
 // SAFETY: The underlying NLLanguageRecognizer object is thread-safe.
 unsafe impl Sync for LanguageRecognizer {}
 
-impl Drop for LanguageRecognizer {
-    fn drop(&mut self) {
-        unsafe { ffi::nl_object_release(self.handle.as_ptr()) };
-    }
-}
+nl_retained!(LanguageRecognizer, release = ffi::nl_object_release);
 
 impl LanguageRecognizer {
     /// Create a new empty recognizer.

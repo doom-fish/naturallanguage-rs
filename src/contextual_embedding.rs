@@ -15,6 +15,7 @@ use std::task::{Context, Poll};
 use crate::error::NLError;
 use crate::ffi;
 use crate::language::Language;
+use crate::retained::nl_retained;
 use crate::script::Script;
 use crate::types::TextRange;
 use crate::util::{cstring_arg, decode_string_array, status_error, take_string};
@@ -87,11 +88,7 @@ unsafe impl Send for ContextualEmbeddingResult {}
 // SAFETY: The underlying NLContextualEmbeddingResult object is thread-safe.
 unsafe impl Sync for ContextualEmbeddingResult {}
 
-impl Drop for ContextualEmbeddingResult {
-    fn drop(&mut self) {
-        unsafe { ffi::nl_object_release(self.handle.as_ptr()) };
-    }
-}
+nl_retained!(ContextualEmbeddingResult, release = ffi::nl_object_release);
 
 impl ContextualEmbeddingResult {
     pub fn string(&self) -> Result<String, NLError> {
@@ -223,14 +220,11 @@ pub struct ContextualEmbedding {
     handle: NonNull<c_void>,
 }
 
-impl Clone for ContextualEmbedding {
-    fn clone(&self) -> Self {
-        let handle = unsafe { ffi::nl_object_retain(self.handle.as_ptr()) };
-        Self {
-            handle: NonNull::new(handle).expect("nl_object_retain returned null"),
-        }
-    }
-}
+nl_retained!(
+    ContextualEmbedding,
+    retain = ffi::nl_object_retain,
+    release = ffi::nl_object_release,
+);
 
 // SAFETY: ContextualEmbedding wraps an Objective-C object handle from NaturalLanguage.framework,
 // which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
@@ -239,12 +233,6 @@ unsafe impl Send for ContextualEmbedding {}
 
 // SAFETY: The underlying NLContextualEmbedding object is thread-safe.
 unsafe impl Sync for ContextualEmbedding {}
-
-impl Drop for ContextualEmbedding {
-    fn drop(&mut self) {
-        unsafe { ffi::nl_object_release(self.handle.as_ptr()) };
-    }
-}
 
 impl ContextualEmbedding {
     pub fn from_model_identifier(identifier: &str) -> Result<Option<Self>, NLError> {
@@ -561,10 +549,7 @@ impl ContextualEmbedding {
             AsyncCompletion::<Result<ContextualEmbeddingAssetsResult, NLError>>::create();
         let ctx = ctx as usize;
         std::thread::spawn(move || unsafe {
-            AsyncCompletion::complete_ok(
-                ctx as *mut c_void,
-                embedding.request_embedding_assets(),
-            );
+            AsyncCompletion::complete_ok(ctx as *mut c_void, embedding.request_embedding_assets());
         });
         ContextualEmbeddingAssetsFuture { inner: future }
     }

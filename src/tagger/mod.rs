@@ -17,6 +17,7 @@ use std::task::{Context, Poll};
 use crate::error::NLError;
 use crate::ffi;
 use crate::language::Language;
+use crate::retained::nl_retained;
 use crate::script::Script;
 use crate::string_enum::string_extensible_enum;
 use crate::types::TextRange;
@@ -258,11 +259,7 @@ unsafe impl Send for Tagger {}
 // SAFETY: The underlying NLTagger object is thread-safe.
 unsafe impl Sync for Tagger {}
 
-impl Drop for Tagger {
-    fn drop(&mut self) {
-        unsafe { ffi::nl_object_release(self.handle.as_ptr()) };
-    }
-}
+nl_retained!(Tagger, release = ffi::nl_object_release);
 
 impl Tagger {
     /// Create a tagger configured with the supplied schemes.

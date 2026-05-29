@@ -6,6 +6,7 @@ use std::ptr::{self, NonNull};
 use crate::error::NLError;
 use crate::ffi;
 use crate::language::Language;
+use crate::retained::nl_retained;
 use crate::util::{cstring_arg, decode_usize_array, status_error, take_string};
 
 /// `NLDistanceType`.
@@ -39,11 +40,7 @@ unsafe impl Send for Embedding {}
 // SAFETY: The underlying NLEmbedding object is thread-safe.
 unsafe impl Sync for Embedding {}
 
-impl Drop for Embedding {
-    fn drop(&mut self) {
-        unsafe { ffi::nl_embedding_release(self.handle.as_ptr()) };
-    }
-}
+nl_retained!(Embedding, release = ffi::nl_embedding_release);
 
 impl Embedding {
     pub fn word_for_language(language: impl AsRef<str>) -> Result<Option<Self>, NLError> {

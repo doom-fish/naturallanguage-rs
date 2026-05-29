@@ -7,6 +7,7 @@ use std::ptr::{self, NonNull};
 use crate::error::NLError;
 use crate::ffi;
 use crate::language::Language;
+use crate::retained::nl_retained;
 use crate::util::{cstring_arg, status_error, take_string};
 
 /// An `NLGazetteer` for label lookups over custom term dictionaries.
@@ -23,11 +24,7 @@ unsafe impl Send for Gazetteer {}
 // SAFETY: The underlying NLGazetteer object is thread-safe.
 unsafe impl Sync for Gazetteer {}
 
-impl Drop for Gazetteer {
-    fn drop(&mut self) {
-        unsafe { ffi::nl_object_release(self.handle.as_ptr()) };
-    }
-}
+nl_retained!(Gazetteer, release = ffi::nl_object_release);
 
 impl Gazetteer {
     pub(crate) const unsafe fn from_retained_ptr(handle: NonNull<c_void>) -> Self {

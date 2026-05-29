@@ -237,6 +237,37 @@ func nlCopyDoubles(_ values: [Double]) -> UnsafeMutablePointer<Double>? {
     return buffer
 }
 
+/// Cross-language ABI check. Returns `true` only if the Swift `MemoryLayout`
+/// (size, stride and alignment) of every shared FFI struct matches the values
+/// pinned on the Rust side in `src/ffi/mod.rs`. Verified from Rust by
+/// `tests/ffi_layout_tests.rs`. If this drifts, marshalled data corrupts at
+/// runtime, so keep both sides in sync.
+@_cdecl("nl_verify_ffi_layout")
+public func nl_verify_ffi_layout() -> Bool {
+    func check<T>(_ type: T.Type, size: Int, alignment: Int) -> Bool {
+        MemoryLayout<T>.size == size
+            && MemoryLayout<T>.stride == size
+            && MemoryLayout<T>.alignment == alignment
+    }
+
+    return check(NLTextRangeRaw.self, size: 16, alignment: 8)
+        && check(NLLanguageHypothesisRaw.self, size: 16, alignment: 8)
+        && check(NLLanguageHypothesisRefRaw.self, size: 16, alignment: 8)
+        && check(NLStringRaw.self, size: 8, alignment: 8)
+        && check(NLStringDoubleRaw.self, size: 16, alignment: 8)
+        && check(NLTokenRaw.self, size: 24, alignment: 8)
+        && check(NLTokenSpanRaw.self, size: 32, alignment: 8)
+        && check(NLTagSpanRaw.self, size: 32, alignment: 8)
+        && check(NLNamedEntityRaw.self, size: 32, alignment: 8)
+        && check(NLBytesRaw.self, size: 16, alignment: 8)
+        && check(NLEmbeddingNeighborRaw.self, size: 16, alignment: 8)
+        && check(NLEmbeddingVectorEntryRefRaw.self, size: 24, alignment: 8)
+        && check(NLLabelTermRefRaw.self, size: 16, alignment: 8)
+        && check(NLOrthographyEntryRefRaw.self, size: 16, alignment: 8)
+        && check(NLTokenVectorRaw.self, size: 32, alignment: 8)
+        && check(NLHypothesisSetRaw.self, size: 16, alignment: 8)
+}
+
 @_cdecl("nl_object_retain")
 public func nl_object_retain(_ handle: UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer? {
     guard let handle else { return nil }

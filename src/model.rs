@@ -6,6 +6,7 @@ use std::ptr::{self, NonNull};
 use crate::error::NLError;
 use crate::ffi;
 use crate::language::Language;
+use crate::retained::nl_retained;
 use crate::util::{
     cstring_arg, decode_string_array, decode_usize_array, status_error, take_string,
 };
@@ -32,11 +33,7 @@ unsafe impl Send for CoreMlModel {}
 // SAFETY: The underlying MLModel object is thread-safe.
 unsafe impl Sync for CoreMlModel {}
 
-impl Drop for CoreMlModel {
-    fn drop(&mut self) {
-        unsafe { ffi::nl_object_release(self.handle.as_ptr()) };
-    }
-}
+nl_retained!(CoreMlModel, release = ffi::nl_object_release);
 
 impl CoreMlModel {
     pub fn from_source_path(path: impl AsRef<std::path::Path>) -> Result<Self, NLError> {
@@ -96,11 +93,7 @@ unsafe impl Send for ModelConfiguration {}
 // SAFETY: The underlying NLModelConfiguration object is thread-safe.
 unsafe impl Sync for ModelConfiguration {}
 
-impl Drop for ModelConfiguration {
-    fn drop(&mut self) {
-        unsafe { ffi::nl_object_release(self.handle.as_ptr()) };
-    }
-}
+nl_retained!(ModelConfiguration, release = ffi::nl_object_release);
 
 impl ModelConfiguration {
     pub(crate) const unsafe fn from_retained_ptr(handle: NonNull<c_void>) -> Self {
@@ -173,11 +166,7 @@ unsafe impl Send for Model {}
 // SAFETY: The underlying NLModel object is thread-safe.
 unsafe impl Sync for Model {}
 
-impl Drop for Model {
-    fn drop(&mut self) {
-        unsafe { ffi::nl_object_release(self.handle.as_ptr()) };
-    }
-}
+nl_retained!(Model, release = ffi::nl_object_release);
 
 impl Model {
     pub(crate) const unsafe fn from_retained_ptr(handle: NonNull<c_void>) -> Self {

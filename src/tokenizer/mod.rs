@@ -6,6 +6,7 @@ use std::ptr::{self, NonNull};
 use crate::error::NLError;
 use crate::ffi;
 use crate::language::Language;
+use crate::retained::nl_retained;
 use crate::types::TextRange;
 use crate::util::{cstring_arg, status_error, take_string};
 
@@ -104,11 +105,7 @@ unsafe impl Send for Tokenizer {}
 // SAFETY: The underlying NLTokenizer object is thread-safe.
 unsafe impl Sync for Tokenizer {}
 
-impl Drop for Tokenizer {
-    fn drop(&mut self) {
-        unsafe { ffi::nl_object_release(self.handle.as_ptr()) };
-    }
-}
+nl_retained!(Tokenizer, release = ffi::nl_object_release);
 
 impl Tokenizer {
     /// Create a tokenizer for the requested unit.

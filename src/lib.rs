@@ -17,6 +17,8 @@
 mod string_enum;
 pub(crate) mod util;
 
+pub(crate) mod retained;
+
 pub mod error;
 pub mod ffi;
 pub mod language;
