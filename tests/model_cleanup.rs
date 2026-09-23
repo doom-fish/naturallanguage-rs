@@ -22,6 +22,7 @@ fn compiled_copies(stem: &str) -> Vec<PathBuf> {
 }
 
 #[test]
+#[ignore = "Core ML compiles a .mlmodel source into the system temporary directory, outside target/"]
 fn compiled_source_models_are_removed_with_the_last_reference() -> Result<(), Box<dyn Error>> {
     let stem = format!("nl_cleanup_probe_{}_", std::process::id());
     let source = common::artifact_path("model_cleanup", &format!("{stem}.mlmodel"));

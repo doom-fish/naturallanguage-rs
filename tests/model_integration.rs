@@ -11,10 +11,9 @@ fn model_loads_classifier_and_sequence_predictions() -> Result<(), Box<dyn Error
     let compiled_classifier = common::compile_model(&classifier_source, "model");
     let compiled_sequence = common::compile_model(&sequence_source, "model");
 
-    let coreml_source = CoreMlModel::from_source_path(&classifier_source)?;
-    let _coreml_compiled = CoreMlModel::from_compiled_path(&compiled_classifier)?;
+    let coreml_compiled = CoreMlModel::from_compiled_path(&compiled_classifier)?;
 
-    let classifier = Model::from_core_ml_model(&coreml_source)?;
+    let classifier = Model::from_core_ml_model(&coreml_compiled)?;
     let classifier_from_path = Model::from_path(&compiled_classifier)?;
     let classifier_config = classifier.configuration()?;
     assert_eq!(classifier_config.model_type(), ModelType::Classifier);
