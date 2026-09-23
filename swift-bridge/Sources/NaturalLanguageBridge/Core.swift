@@ -155,8 +155,10 @@ func nlBorrow<T: AnyObject>(_ handle: UnsafeMutableRawPointer?) -> T? {
 
 @inline(__always)
 func nlNSErrorCode(_ error: Error) -> Int32 {
-    let nsError = error as NSError
-    return nsError.code == 0 ? NL_UNKNOWN : Int32(nsError.code)
+    guard let code = Int32(exactly: (error as NSError).code), !(NL_UNKNOWN...NL_OK).contains(code) else {
+        return NL_UNKNOWN
+    }
+    return code
 }
 
 @inline(__always)
