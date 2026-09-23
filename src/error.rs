@@ -12,7 +12,10 @@ pub enum NLError {
     Unsupported(String),
     TimedOut(String),
     /// Catch-all for unmapped statuses from the Swift bridge.
-    Unknown { code: i32, message: String },
+    Unknown {
+        code: i32,
+        message: String,
+    },
 }
 
 impl fmt::Display for NLError {
