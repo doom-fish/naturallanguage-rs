@@ -49,3 +49,20 @@ fn tokenizer_reports_ranges_and_attributes() -> Result<(), Box<dyn Error>> {
     assert!(numeric.attributes.contains(TokenizerAttributes::NUMERIC));
     Ok(())
 }
+
+#[test]
+fn token_ranges_convert_to_byte_ranges() -> Result<(), Box<dyn Error>> {
+    let text = "Grüße 👋🏽 aus Köln";
+    let mut tokenizer = Tokenizer::new(TokenUnit::Word)?;
+    tokenizer.set_string(Some(text))?;
+    let tokens = tokenizer.tokens_in_range(TextRange::new(0, text.encode_utf16().count()))?;
+    assert_eq!(tokens.len(), 4);
+    for token in tokens {
+        let bytes = token
+            .range
+            .byte_range(text)
+            .expect("token range on character boundaries");
+        assert_eq!(&text[bytes], token.text);
+    }
+    Ok(())
+}
