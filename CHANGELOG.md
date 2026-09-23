@@ -1,5 +1,57 @@
 # Changelog
 
+All notable changes to `naturallanguage` are documented here.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.5.0] - Unreleased
+
+### Security
+
+- `Tagger`, `Tokenizer` and `LanguageRecognizer` are no longer `Sync`. Their headers
+  forbid using one instance from two threads at once, so `&self` queries through an
+  `Arc` could race inside the framework.
+- Caller ranges can no longer abort the process. `token_range_for_range`,
+  `set_language`, `set_orthography` and the contextual `token_vectors_in_range`
+  skipped validation, so `TextRange::new(1, usize::MAX)` reached Swift as a negative
+  length and trapped; the shared validation itself trapped on `location + length`
+  overflow. Every range-taking call now validates with checked arithmetic and
+  returns `NLError::InvalidArgument`.
+
+### Fixed
+
+- `Tagger::request_assets` and `ContextualEmbedding::request_embedding_assets` report
+  a timeout as `NLError::TimedOut` instead of success with an empty `Error` result.
+  They wait up to 300 s (was 30 s), the completion writes into lock-protected state,
+  and the error message that accompanies an `Error` result is freed instead of
+  leaked.
+- A framework error code outside the `Int32` range no longer traps, and codes that
+  fall into the bridge's status range are reported as `Unknown` rather than, for
+  example, `InvalidArgument`.
+- `CoreMlModel::from_source_path` deletes the compiled `.mlmodelc` it creates in
+  `TMPDIR` once the last reference to the model is gone.
+- `TextRange::end` saturates instead of overflowing.
+
+### Changed
+
+- **Breaking:** `Tagger`, `Tokenizer` and `LanguageRecognizer` are `Send` but not
+  `Sync`.
+- **Breaking:** `Tagger::tags_in_range` and `Tokenizer::tokens_in_range` return
+  `NLError::InvalidArgument` for an out-of-bounds range or a missing string instead
+  of an empty list.
+- `rust-version` is 1.82 (was 1.76, which never compiled: `TagSpanRaw` derived
+  `Default` over raw pointers, a Rust 1.88 feature; it now implements it by hand).
+  `doom-fish-utils` is required at `>=0.4.1, <0.5`.
+- FFI hardening that was not yet released: compile-time size and alignment checks
+  for the FFI structs with a Swift-side cross-check (`nl_verify_ffi_layout`), one
+  macro for the retain/release boilerplate, and no empty bridge header.
+
+### Added
+
+- `TextRange::byte_range` converts a UTF-16 range to a byte range of a Rust `&str`.
+- `NLError::TimedOut` and `ffi::status::TIMED_OUT`.
+
 ## [0.4.4] - 2026-05-20
 
 - Migrated local `take_string` body to call `doom_fish_utils::ffi_string::take_owned_cstring_c`. Centralises the duplicated FFI take-string pattern fleet-wide. No public API change.

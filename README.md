@@ -4,6 +4,13 @@ Safe Rust bindings for Apple's [NaturalLanguage](https://developer.apple.com/doc
 
 > **Status:** experimental. The full public `NaturalLanguage.framework` header surface in `MacOSX26.5.sdk` is wrapped, with row-by-row results in [`COVERAGE.md`](COVERAGE.md). `NLDataAsset` is not present in the current macOS headers, so it is recorded there as skipped/absent. Requires macOS 13 or later; `NLContextualEmbedding` needs macOS 14, and availability-gated APIs return `NLError::Unsupported` on older releases.
 
+## Installation
+
+```toml
+[dependencies]
+naturallanguage = "0.5"
+```
+
 ## Quick start
 
 ```rust,no_run
