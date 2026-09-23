@@ -251,13 +251,10 @@ pub struct Tagger {
     handle: NonNull<c_void>,
 }
 
-// SAFETY: Tagger wraps an Objective-C object handle from NaturalLanguage.framework,
-// which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
-// internal locking ensures thread-safe access.
+// SAFETY: NLTagger.h allows an instance on any thread but not on two threads at
+// once. Tagger owns its handle exclusively and is not Sync or Clone, so moving it
+// to another thread cannot introduce concurrent use.
 unsafe impl Send for Tagger {}
-
-// SAFETY: The underlying NLTagger object is thread-safe.
-unsafe impl Sync for Tagger {}
 
 nl_retained!(Tagger, release = ffi::nl_object_release);
 

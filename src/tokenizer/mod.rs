@@ -97,13 +97,10 @@ pub struct Tokenizer {
     handle: NonNull<c_void>,
 }
 
-// SAFETY: Tokenizer wraps an Objective-C object handle from NaturalLanguage.framework,
-// which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
-// internal locking ensures thread-safe access.
+// SAFETY: NLTokenizer.h allows an instance on any thread but not on two threads at
+// once. Tokenizer owns its handle exclusively and is not Sync or Clone, so moving it
+// to another thread cannot introduce concurrent use.
 unsafe impl Send for Tokenizer {}
-
-// SAFETY: The underlying NLTokenizer object is thread-safe.
-unsafe impl Sync for Tokenizer {}
 
 nl_retained!(Tokenizer, release = ffi::nl_object_release);
 
