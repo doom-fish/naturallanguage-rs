@@ -61,12 +61,23 @@ pub struct TokenSpanRaw {
 }
 
 #[repr(C)]
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy)]
 pub struct TagSpanRaw {
     pub start: usize,
     pub length: usize,
     pub text: *mut c_char,
     pub tag: *mut c_char,
+}
+
+impl Default for TagSpanRaw {
+    fn default() -> Self {
+        Self {
+            start: 0,
+            length: 0,
+            text: core::ptr::null_mut(),
+            tag: core::ptr::null_mut(),
+        }
+    }
 }
 
 #[repr(C)]
@@ -137,9 +148,6 @@ pub struct CoreMlModelRefRaw {
 // the build instead. If you change a layout here you MUST mirror it in the
 // matching Swift struct (Core.swift / NaturalLanguage.swift); the cross-language
 // `nl_verify_ffi_layout` check in `tests/ffi_layout_tests.rs` guards that too.
-//
-// `offset_of!` is intentionally not used: the crate MSRV is 1.76 and
-// `core::mem::offset_of!` only stabilised in 1.77.
 use core::mem::{align_of, size_of};
 
 const _: () = assert!(size_of::<TextRangeRaw>() == 16);

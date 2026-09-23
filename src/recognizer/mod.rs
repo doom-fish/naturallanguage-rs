@@ -53,7 +53,7 @@ impl LanguageRecognizer {
             ffi::nl_language_recognizer_process_string(
                 self.handle.as_ptr(),
                 text_c.as_ptr(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -79,8 +79,8 @@ impl LanguageRecognizer {
         let status = unsafe {
             ffi::nl_language_recognizer_dominant_language(
                 self.handle.as_ptr(),
-                &mut out,
-                &mut error,
+                &raw mut out,
+                &raw mut error,
             )
         };
         match status {
@@ -106,9 +106,9 @@ impl LanguageRecognizer {
             ffi::nl_language_recognizer_language_hypotheses(
                 self.handle.as_ptr(),
                 max_hypotheses,
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -129,9 +129,9 @@ impl LanguageRecognizer {
         let status = unsafe {
             ffi::nl_language_recognizer_language_hints(
                 self.handle.as_ptr(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -164,7 +164,7 @@ impl LanguageRecognizer {
                 self.handle.as_ptr(),
                 raws.as_ptr().cast(),
                 raws.len(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -182,9 +182,9 @@ impl LanguageRecognizer {
         let status = unsafe {
             ffi::nl_language_recognizer_language_constraints(
                 self.handle.as_ptr(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -216,7 +216,7 @@ impl LanguageRecognizer {
                 self.handle.as_ptr(),
                 raw_ptrs.as_ptr(),
                 raw_ptrs.len(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {

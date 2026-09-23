@@ -271,7 +271,7 @@ impl Tagger {
             .collect::<Vec<_>>();
         let mut error: *mut c_char = ptr::null_mut();
         let handle = NonNull::new(unsafe {
-            ffi::nl_tagger_create(scheme_ptrs.as_ptr(), scheme_ptrs.len(), &mut error)
+            ffi::nl_tagger_create(scheme_ptrs.as_ptr(), scheme_ptrs.len(), &raw mut error)
         })
         .ok_or_else(|| status_error(ffi::status::UNKNOWN, "failed to create tagger", error))?;
         Ok(Self { handle })
@@ -283,7 +283,12 @@ impl Tagger {
         let mut count: usize = 0;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_tagger_tag_schemes(self.handle.as_ptr(), &mut array, &mut count, &mut error)
+            ffi::nl_tagger_tag_schemes(
+                self.handle.as_ptr(),
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
+            )
         };
         if status != ffi::status::OK {
             return Err(status_error(status, "tagger tag_schemes failed", error));
@@ -298,7 +303,8 @@ impl Tagger {
     pub fn string(&self) -> Result<Option<String>, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_tagger_string(self.handle.as_ptr(), &mut out, &mut error) };
+        let status =
+            unsafe { ffi::nl_tagger_string(self.handle.as_ptr(), &raw mut out, &raw mut error) };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) })
         } else {
@@ -314,7 +320,7 @@ impl Tagger {
             ffi::nl_tagger_set_string(
                 self.handle.as_ptr(),
                 text_c.as_ref().map_or(ptr::null(), |value| value.as_ptr()),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -337,9 +343,9 @@ impl Tagger {
             ffi::nl_tagger_available_tag_schemes(
                 unit as i32,
                 language_c.as_ptr(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -369,7 +375,7 @@ impl Tagger {
                 character_index,
                 unit as i32,
                 ptr::addr_of_mut!(range).cast(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -398,7 +404,7 @@ impl Tagger {
                 range.length,
                 unit as i32,
                 ptr::addr_of_mut!(out).cast(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -416,8 +422,9 @@ impl Tagger {
     pub fn dominant_language(&self) -> Result<Option<Language>, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status =
-            unsafe { ffi::nl_tagger_dominant_language(self.handle.as_ptr(), &mut out, &mut error) };
+        let status = unsafe {
+            ffi::nl_tagger_dominant_language(self.handle.as_ptr(), &raw mut out, &raw mut error)
+        };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.map(Language::from))
         } else if status == ffi::status::NO_DOMINANT_LANGUAGE {
@@ -451,9 +458,9 @@ impl Tagger {
                 unit as i32,
                 scheme_c.as_ptr(),
                 options.bits(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -499,7 +506,7 @@ impl Tagger {
                 unit as i32,
                 scheme_c.as_ptr(),
                 ptr::addr_of_mut!(raw).cast(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -530,9 +537,9 @@ impl Tagger {
                 scheme_c.as_ptr(),
                 maximum_count,
                 ptr::addr_of_mut!(range).cast(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -557,7 +564,7 @@ impl Tagger {
                 language_c.as_ptr(),
                 range.start,
                 range.length,
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -609,7 +616,7 @@ impl Tagger {
                 entries.len(),
                 range.start,
                 range.length,
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -634,7 +641,7 @@ impl Tagger {
                 handles.as_ptr(),
                 handles.len(),
                 scheme_c.as_ptr(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -655,9 +662,9 @@ impl Tagger {
             ffi::nl_tagger_models_for_tag_scheme(
                 self.handle.as_ptr(),
                 scheme_c.as_ptr(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -689,7 +696,7 @@ impl Tagger {
                 handles.as_ptr(),
                 handles.len(),
                 scheme_c.as_ptr(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -713,9 +720,9 @@ impl Tagger {
             ffi::nl_tagger_gazetteers_for_tag_scheme(
                 self.handle.as_ptr(),
                 scheme_c.as_ptr(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -741,8 +748,8 @@ impl Tagger {
             ffi::nl_tagger_request_assets(
                 language_c.as_ptr(),
                 scheme_c.as_ptr(),
-                &mut result,
-                &mut error,
+                &raw mut result,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {

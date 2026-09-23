@@ -133,7 +133,7 @@ impl Tokenizer {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status =
-            unsafe { ffi::nl_tokenizer_string(self.handle.as_ptr(), &mut out, &mut error) };
+            unsafe { ffi::nl_tokenizer_string(self.handle.as_ptr(), &raw mut out, &raw mut error) };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) })
         } else {
@@ -149,7 +149,7 @@ impl Tokenizer {
             ffi::nl_tokenizer_set_string(
                 self.handle.as_ptr(),
                 text_c.as_ref().map_or(ptr::null(), |value| value.as_ptr()),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -168,7 +168,11 @@ impl Tokenizer {
         let language_c = cstring_arg(language.as_str(), "language")?;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_tokenizer_set_language(self.handle.as_ptr(), language_c.as_ptr(), &mut error)
+            ffi::nl_tokenizer_set_language(
+                self.handle.as_ptr(),
+                language_c.as_ptr(),
+                &raw mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(())
@@ -190,7 +194,7 @@ impl Tokenizer {
                 self.handle.as_ptr(),
                 character_index,
                 ptr::addr_of_mut!(range).cast(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -214,7 +218,7 @@ impl Tokenizer {
                 range.start,
                 range.length,
                 ptr::addr_of_mut!(out).cast(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -244,9 +248,9 @@ impl Tokenizer {
                 self.handle.as_ptr(),
                 range.start,
                 range.length,
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {

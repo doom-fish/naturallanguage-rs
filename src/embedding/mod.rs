@@ -86,7 +86,7 @@ impl Embedding {
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_embedding_with_contents_of_url(path_c.as_ptr(), &mut handle, &mut error)
+            ffi::nl_embedding_with_contents_of_url(path_c.as_ptr(), &raw mut handle, &raw mut error)
         };
         if status != ffi::status::OK {
             return Err(status_error(status, "failed to load embedding", error));
@@ -111,8 +111,9 @@ impl Embedding {
     pub fn language(&self) -> Result<Option<Language>, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status =
-            unsafe { ffi::nl_embedding_language(self.handle.as_ptr(), &mut out, &mut error) };
+        let status = unsafe {
+            ffi::nl_embedding_language(self.handle.as_ptr(), &raw mut out, &raw mut error)
+        };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.map(Language::from))
         } else {
@@ -204,8 +205,8 @@ impl Embedding {
                 max,
                 maximum_distance.unwrap_or(-1.0),
                 distance_type as i32,
-                &mut out_array,
-                &mut out_count,
+                &raw mut out_array,
+                &raw mut out_count,
             )
         };
         if !ok {
@@ -240,8 +241,8 @@ impl Embedding {
                 max,
                 maximum_distance.unwrap_or(-1.0),
                 distance_type as i32,
-                &mut out_array,
-                &mut out_count,
+                &raw mut out_array,
+                &raw mut out_count,
             )
         };
         if !ok {
@@ -295,7 +296,11 @@ impl Embedding {
         let mut array: *mut c_void = ptr::null_mut();
         let mut count: usize = 0;
         let status = unsafe {
-            ffi::nl_embedding_supported_revisions_for_language(cs.as_ptr(), &mut array, &mut count)
+            ffi::nl_embedding_supported_revisions_for_language(
+                cs.as_ptr(),
+                &raw mut array,
+                &raw mut count,
+            )
         };
         if status == ffi::status::OK {
             Ok(unsafe { decode_usize_array(array, count) })
@@ -323,8 +328,8 @@ impl Embedding {
         let status = unsafe {
             ffi::nl_embedding_supported_sentence_revisions_for_language(
                 cs.as_ptr(),
-                &mut array,
-                &mut count,
+                &raw mut array,
+                &raw mut count,
             )
         };
         if status == ffi::status::OK {
@@ -377,7 +382,7 @@ impl Embedding {
                     .map_or(ptr::null(), |value| value.as_ptr()),
                 revision,
                 path_c.as_ptr(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {

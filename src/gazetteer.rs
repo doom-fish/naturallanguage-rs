@@ -41,7 +41,7 @@ impl Gazetteer {
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_gazetteer_with_contents_of_url(path_c.as_ptr(), &mut handle, &mut error)
+            ffi::nl_gazetteer_with_contents_of_url(path_c.as_ptr(), &raw mut handle, &raw mut error)
         };
         if status != ffi::status::OK {
             return Err(status_error(status, "failed to load gazetteer", error));
@@ -58,7 +58,7 @@ impl Gazetteer {
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_gazetteer_with_data(data.as_ptr(), data.len(), &mut handle, &mut error)
+            ffi::nl_gazetteer_with_data(data.as_ptr(), data.len(), &raw mut handle, &raw mut error)
         };
         if status != ffi::status::OK {
             return Err(status_error(status, "failed to load gazetteer data", error));
@@ -99,8 +99,8 @@ impl Gazetteer {
                 language_c
                     .as_ref()
                     .map_or(ptr::null(), |value| value.as_ptr()),
-                &mut handle,
-                &mut error,
+                &raw mut handle,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -122,8 +122,8 @@ impl Gazetteer {
             ffi::nl_gazetteer_label_for_string(
                 self.handle.as_ptr(),
                 text_c.as_ptr(),
-                &mut out,
-                &mut error,
+                &raw mut out,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -137,8 +137,9 @@ impl Gazetteer {
     pub fn language(&self) -> Result<Option<Language>, NLError> {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status =
-            unsafe { ffi::nl_gazetteer_language(self.handle.as_ptr(), &mut out, &mut error) };
+        let status = unsafe {
+            ffi::nl_gazetteer_language(self.handle.as_ptr(), &raw mut out, &raw mut error)
+        };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.map(Language::from))
         } else {
@@ -161,7 +162,7 @@ impl Gazetteer {
             ffi::nl_gazetteer_data(
                 self.handle.as_ptr(),
                 ptr::addr_of_mut!(bytes).cast(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -207,7 +208,7 @@ impl Gazetteer {
                     .as_ref()
                     .map_or(ptr::null(), |value| value.as_ptr()),
                 path_c.as_ptr(),
-                &mut error,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {

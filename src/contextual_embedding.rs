@@ -95,7 +95,11 @@ impl ContextualEmbeddingResult {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_contextual_embedding_result_string(self.handle.as_ptr(), &mut out, &mut error)
+            ffi::nl_contextual_embedding_result_string(
+                self.handle.as_ptr(),
+                &raw mut out,
+                &raw mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.unwrap_or_default())
@@ -112,7 +116,11 @@ impl ContextualEmbeddingResult {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_contextual_embedding_result_language(self.handle.as_ptr(), &mut out, &mut error)
+            ffi::nl_contextual_embedding_result_language(
+                self.handle.as_ptr(),
+                &raw mut out,
+                &raw mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(Language::from(
@@ -141,9 +149,9 @@ impl ContextualEmbeddingResult {
                 self.handle.as_ptr(),
                 range.start,
                 range.length,
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -185,8 +193,8 @@ impl ContextualEmbeddingResult {
                 self.handle.as_ptr(),
                 character_index,
                 ptr::addr_of_mut!(raw).cast(),
-                &mut found,
-                &mut error,
+                &raw mut found,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -273,9 +281,9 @@ impl ContextualEmbedding {
                 script_ptrs.len(),
                 query.revision.is_some(),
                 query.revision.unwrap_or_default(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -312,8 +320,8 @@ impl ContextualEmbedding {
         let status = unsafe {
             ffi::nl_contextual_embedding_model_identifier(
                 self.handle.as_ptr(),
-                &mut out,
-                &mut error,
+                &raw mut out,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -334,9 +342,9 @@ impl ContextualEmbedding {
         let status = unsafe {
             ffi::nl_contextual_embedding_languages(
                 self.handle.as_ptr(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -359,9 +367,9 @@ impl ContextualEmbedding {
         let status = unsafe {
             ffi::nl_contextual_embedding_scripts(
                 self.handle.as_ptr(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -381,7 +389,11 @@ impl ContextualEmbedding {
         let mut out = 0;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_contextual_embedding_revision(self.handle.as_ptr(), &mut out, &mut error)
+            ffi::nl_contextual_embedding_revision(
+                self.handle.as_ptr(),
+                &raw mut out,
+                &raw mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(out)
@@ -398,7 +410,11 @@ impl ContextualEmbedding {
         let mut out = 0;
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_contextual_embedding_dimension(self.handle.as_ptr(), &mut out, &mut error)
+            ffi::nl_contextual_embedding_dimension(
+                self.handle.as_ptr(),
+                &raw mut out,
+                &raw mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(out)
@@ -417,8 +433,8 @@ impl ContextualEmbedding {
         let status = unsafe {
             ffi::nl_contextual_embedding_maximum_sequence_length(
                 self.handle.as_ptr(),
-                &mut out,
-                &mut error,
+                &raw mut out,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -434,7 +450,8 @@ impl ContextualEmbedding {
 
     pub fn load(&self) -> Result<(), NLError> {
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_contextual_embedding_load(self.handle.as_ptr(), &mut error) };
+        let status =
+            unsafe { ffi::nl_contextual_embedding_load(self.handle.as_ptr(), &raw mut error) };
         if status == ffi::status::OK {
             Ok(())
         } else {
@@ -449,7 +466,7 @@ impl ContextualEmbedding {
     pub fn unload(&self) -> Result<(), NLError> {
         let mut error: *mut c_char = ptr::null_mut();
         let status =
-            unsafe { ffi::nl_contextual_embedding_unload(self.handle.as_ptr(), &mut error) };
+            unsafe { ffi::nl_contextual_embedding_unload(self.handle.as_ptr(), &raw mut error) };
         if status == ffi::status::OK {
             Ok(())
         } else {
@@ -479,8 +496,8 @@ impl ContextualEmbedding {
                 language_c
                     .as_ref()
                     .map_or(ptr::null(), |value| value.as_ptr()),
-                &mut handle,
-                &mut error,
+                &raw mut handle,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -500,8 +517,8 @@ impl ContextualEmbedding {
         let status = unsafe {
             ffi::nl_contextual_embedding_has_available_assets(
                 self.handle.as_ptr(),
-                &mut out,
-                &mut error,
+                &raw mut out,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -521,8 +538,8 @@ impl ContextualEmbedding {
         let status = unsafe {
             ffi::nl_contextual_embedding_request_assets(
                 self.handle.as_ptr(),
-                &mut result,
-                &mut error,
+                &raw mut result,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {

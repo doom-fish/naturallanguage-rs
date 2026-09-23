@@ -41,7 +41,11 @@ impl CoreMlModel {
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_coreml_model_create_from_source_path(path_c.as_ptr(), &mut handle, &mut error)
+            ffi::nl_coreml_model_create_from_source_path(
+                path_c.as_ptr(),
+                &raw mut handle,
+                &raw mut error,
+            )
         };
         if status != ffi::status::OK {
             return Err(status_error(status, "failed to load Core ML model", error));
@@ -58,7 +62,11 @@ impl CoreMlModel {
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_coreml_model_create_from_compiled_path(path_c.as_ptr(), &mut handle, &mut error)
+            ffi::nl_coreml_model_create_from_compiled_path(
+                path_c.as_ptr(),
+                &raw mut handle,
+                &raw mut error,
+            )
         };
         if status != ffi::status::OK {
             return Err(status_error(
@@ -112,7 +120,7 @@ impl ModelConfiguration {
         let mut out: *mut c_char = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
         let status = unsafe {
-            ffi::nl_model_configuration_language(self.handle.as_ptr(), &mut out, &mut error)
+            ffi::nl_model_configuration_language(self.handle.as_ptr(), &raw mut out, &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(unsafe { take_string(out) }.map(Language::from))
@@ -134,7 +142,11 @@ impl ModelConfiguration {
         let mut array: *mut c_void = ptr::null_mut();
         let mut count: usize = 0;
         let status = unsafe {
-            ffi::nl_model_supported_revisions_for_type(model_type as i32, &mut array, &mut count)
+            ffi::nl_model_supported_revisions_for_type(
+                model_type as i32,
+                &raw mut array,
+                &raw mut count,
+            )
         };
         if status == ffi::status::OK {
             Ok(unsafe { decode_usize_array(array, count) })
@@ -181,8 +193,9 @@ impl Model {
         let path_c = cstring_arg(&path.as_ref().to_string_lossy(), "path")?;
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status =
-            unsafe { ffi::nl_model_with_contents_of_url(path_c.as_ptr(), &mut handle, &mut error) };
+        let status = unsafe {
+            ffi::nl_model_with_contents_of_url(path_c.as_ptr(), &raw mut handle, &raw mut error)
+        };
         if status != ffi::status::OK {
             return Err(status_error(status, "failed to load NLModel", error));
         }
@@ -196,7 +209,8 @@ impl Model {
     pub fn from_core_ml_model(model: &CoreMlModel) -> Result<Self, NLError> {
         let mut handle: *mut c_void = ptr::null_mut();
         let mut error: *mut c_char = ptr::null_mut();
-        let status = unsafe { ffi::nl_model_with_mlmodel(model.as_ptr(), &mut handle, &mut error) };
+        let status =
+            unsafe { ffi::nl_model_with_mlmodel(model.as_ptr(), &raw mut handle, &raw mut error) };
         if status != ffi::status::OK {
             return Err(status_error(
                 status,
@@ -228,8 +242,8 @@ impl Model {
             ffi::nl_model_predicted_label_for_string(
                 self.handle.as_ptr(),
                 text_c.as_ptr(),
-                &mut out,
-                &mut error,
+                &raw mut out,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -260,9 +274,9 @@ impl Model {
                 self.handle.as_ptr(),
                 token_ptrs.as_ptr(),
                 token_ptrs.len(),
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -289,9 +303,9 @@ impl Model {
                 self.handle.as_ptr(),
                 text_c.as_ptr(),
                 maximum_count,
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
@@ -326,9 +340,9 @@ impl Model {
                 token_ptrs.as_ptr(),
                 token_ptrs.len(),
                 maximum_count,
-                &mut array,
-                &mut count,
-                &mut error,
+                &raw mut array,
+                &raw mut count,
+                &raw mut error,
             )
         };
         if status != ffi::status::OK {
