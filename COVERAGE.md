@@ -1,6 +1,6 @@
 # NaturalLanguage.framework coverage audit
 
-Audit target: `naturallanguage` `v0.4.3` against `MacOSX26.5.sdk` plus `cargo expand --lib > target/cargo-expand-lib.rs`.
+Audit target: `naturallanguage` `v0.4.3` against `MacOSX26.5.sdk` plus `cargo expand --lib > target/cargo-expand-lib.rs`. The rows still hold for `v0.5.0`: that release changes range validation, thread-safety markers (`Tagger`, `Tokenizer` and `LanguageRecognizer` are no longer `Sync`) and error reporting, not the wrapped surface.
 
 Legend: ✅ implemented · 🟡 partial · ⏭️ skipped
 

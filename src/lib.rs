@@ -9,7 +9,8 @@
 //! framework on macOS — language detection, tokenisation, named-entity
 //! recognition.
 //!
-//! All processing is on-device with no model downloads.
+//! All processing is on-device. `Tagger::request_assets` and
+//! `ContextualEmbedding::request_embedding_assets` may download language assets.
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![allow(clippy::missing_errors_doc, clippy::missing_panics_doc)]

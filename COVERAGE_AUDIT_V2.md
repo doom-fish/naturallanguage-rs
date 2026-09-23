@@ -1,7 +1,7 @@
 # COVERAGE_AUDIT_V2.md – naturallanguage-rs
 
-**SDK**: MacOSX26.2.sdk / NaturalLanguage.framework  
-**Framework Version**: macOS 10.0+  
+**SDK**: MacOSX26.2.sdk / NaturalLanguage.framework (re-checked against MacOSX26.5.sdk on 2026-09-23; no new symbols)  
+**Framework Version**: macOS 10.14+ (the crate requires macOS 13)  
 **Crate**: naturallanguage-rs  
 **Audit Date**: 2025-01-30  
 

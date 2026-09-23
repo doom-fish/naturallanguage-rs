@@ -2,7 +2,7 @@
 
 Safe Rust bindings for Apple's [NaturalLanguage](https://developer.apple.com/documentation/naturallanguage) framework on macOS — language detection, tokenization, tagging, embeddings, gazetteers, and custom/Core ML-backed language models.
 
-> **Status:** experimental. `v0.4.3` audits the full public `NaturalLanguage.framework` header surface in `MacOSX26.5.sdk` against `cargo expand --lib`, adds executor-agnostic futures for the one-shot asset-request completion handlers, and keeps row-by-row results in [`COVERAGE.md`](COVERAGE.md). `NLDataAsset` is not present in the current macOS headers, so it is recorded there as skipped/absent. Availability-gated APIs return `NLError::Unsupported` on older macOS releases.
+> **Status:** experimental. The full public `NaturalLanguage.framework` header surface in `MacOSX26.5.sdk` is wrapped, with row-by-row results in [`COVERAGE.md`](COVERAGE.md). `NLDataAsset` is not present in the current macOS headers, so it is recorded there as skipped/absent. Requires macOS 13 or later; `NLContextualEmbedding` needs macOS 14, and availability-gated APIs return `NLError::Unsupported` on older releases.
 
 ## Quick start
 
@@ -42,6 +42,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 - `NLModel` and `NLModelConfiguration` wrappers plus minimal `MLModel` interop
 - `NLContextualEmbedding` and `NLContextualEmbeddingResult` (macOS 14+)
 - Optional executor-agnostic futures for `NLTagger` / `NLContextualEmbedding` asset requests
+
+## Ranges, threads and asset requests
+
+- Ranges and indices are UTF-16 offsets, as in Apple's `NSRange` APIs. `TextRange::byte_range(text)` converts a range to a byte range for slicing a Rust `&str`, and returns `None` if it would split a character.
+- A range or index outside the current string is rejected with `NLError::InvalidArgument`, including lengths such as `usize::MAX`.
+- `Tagger`, `Tokenizer`, and `LanguageRecognizer` are `Send` but not `Sync`: Apple allows each instance on one thread at a time. The embedding, gazetteer, and model types are `Send + Sync`.
+- `Tagger::request_assets` and `ContextualEmbedding::request_embedding_assets` block until the framework answers, for up to 300 seconds, and then return `NLError::TimedOut`. The download continues in the background.
 
 ## Feature flags
 
