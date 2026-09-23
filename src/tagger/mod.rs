@@ -746,6 +746,7 @@ impl Tagger {
             )
         };
         if status == ffi::status::OK {
+            drop(unsafe { take_string(error) });
             Ok(match result {
                 0 => TaggerAssetsResult::Available,
                 1 => TaggerAssetsResult::NotAvailable,

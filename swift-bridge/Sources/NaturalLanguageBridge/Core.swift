@@ -6,7 +6,45 @@ public let NL_OK: Int32 = 0
 public let NL_INVALID_ARGUMENT: Int32 = -1
 public let NL_NO_DOMINANT_LANGUAGE: Int32 = -2
 public let NL_UNSUPPORTED: Int32 = -3
+public let NL_TIMED_OUT: Int32 = -4
 public let NL_UNKNOWN: Int32 = -99
+
+let NL_ASSET_REQUEST_TIMEOUT_SECONDS: Double = 300
+
+final class NLCompletionBox<Value>: @unchecked Sendable {
+    private let lock = NSLock()
+    private let semaphore = DispatchSemaphore(value: 0)
+    private var value: Value?
+
+    func complete(_ newValue: Value) {
+        lock.lock()
+        let first = value == nil
+        if first {
+            value = newValue
+        }
+        lock.unlock()
+        if first {
+            semaphore.signal()
+        }
+    }
+
+    func wait(seconds: Double) -> Value? {
+        if Thread.isMainThread {
+            let deadline = Date().addingTimeInterval(seconds)
+            while semaphore.wait(timeout: .now()) == .timedOut {
+                if Date() >= deadline {
+                    return nil
+                }
+                RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.01))
+            }
+        } else if semaphore.wait(timeout: .now() + seconds) == .timedOut {
+            return nil
+        }
+        lock.lock()
+        defer { lock.unlock() }
+        return value
+    }
+}
 
 @frozen
 public struct NLTextRangeRaw {

@@ -10,6 +10,7 @@ pub enum NLError {
     InvalidArgument(String),
     /// The requested API is unavailable on the current OS version.
     Unsupported(String),
+    TimedOut(String),
     /// Catch-all for unmapped statuses from the Swift bridge.
     Unknown { code: i32, message: String },
 }
@@ -19,6 +20,7 @@ impl fmt::Display for NLError {
         match self {
             Self::InvalidArgument(m) => write!(f, "invalid argument: {m}"),
             Self::Unsupported(m) => write!(f, "unsupported operation: {m}"),
+            Self::TimedOut(m) => write!(f, "timed out: {m}"),
             Self::Unknown { code, message } => write!(f, "naturallanguage error {code}: {message}"),
         }
     }

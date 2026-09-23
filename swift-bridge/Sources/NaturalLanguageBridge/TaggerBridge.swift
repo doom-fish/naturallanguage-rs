@@ -435,18 +435,17 @@ public func nl_tagger_request_assets(
         return NL_INVALID_ARGUMENT
     }
     if #available(macOS 10.15, *) {
-        let sem = DispatchSemaphore(value: 0)
-        var result = NLTagger.AssetsResult.error
-        var completionError: Error?
+        let box = NLCompletionBox<(NLTagger.AssetsResult, Error?)>()
         NLTagger.requestAssets(
             for: NLLanguage(rawValue: String(cString: language)),
             tagScheme: NLTagScheme(rawValue: String(cString: scheme))
         ) { value, error in
-            result = value
-            completionError = error
-            sem.signal()
+            box.complete((value, error))
         }
-        _ = sem.wait(timeout: .now() + .seconds(30))
+        guard let (result, completionError) = box.wait(seconds: NL_ASSET_REQUEST_TIMEOUT_SECONDS) else {
+            nlSetError(outError, "tagger asset request timed out")
+            return NL_TIMED_OUT
+        }
         outResult.pointee = Int32(result.rawValue)
         if let completionError, result == .error {
             nlSetError(outError, completionError)

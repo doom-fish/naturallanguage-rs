@@ -526,6 +526,7 @@ impl ContextualEmbedding {
             )
         };
         if status == ffi::status::OK {
+            drop(unsafe { take_string(error) });
             Ok(match result {
                 0 => ContextualEmbeddingAssetsResult::Available,
                 1 => ContextualEmbeddingAssetsResult::NotAvailable,

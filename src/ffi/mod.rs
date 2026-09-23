@@ -756,5 +756,6 @@ pub mod status {
     pub const INVALID_ARGUMENT: i32 = -1;
     pub const NO_DOMINANT_LANGUAGE: i32 = -2;
     pub const UNSUPPORTED: i32 = -3;
+    pub const TIMED_OUT: i32 = -4;
     pub const UNKNOWN: i32 = -99;
 }

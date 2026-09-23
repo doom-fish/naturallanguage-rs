@@ -286,15 +286,14 @@ public func nl_contextual_embedding_request_assets(
             nlSetError(outError, "invalid contextual embedding handle")
             return NL_INVALID_ARGUMENT
         }
-        let sem = DispatchSemaphore(value: 0)
-        var result = NLContextualEmbedding.AssetsResult.error
-        var completionError: Error?
+        let box = NLCompletionBox<(NLContextualEmbedding.AssetsResult, Error?)>()
         embedding.requestAssets { value, error in
-            result = value
-            completionError = error
-            sem.signal()
+            box.complete((value, error))
         }
-        _ = sem.wait(timeout: .now() + .seconds(30))
+        guard let (result, completionError) = box.wait(seconds: NL_ASSET_REQUEST_TIMEOUT_SECONDS) else {
+            nlSetError(outError, "contextual embedding asset request timed out")
+            return NL_TIMED_OUT
+        }
         outResult.pointee = Int32(result.rawValue)
         if let completionError, result == .error {
             nlSetError(outError, completionError)

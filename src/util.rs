@@ -16,6 +16,7 @@ pub fn status_error(code: i32, fallback: &str, error: *mut c_char) -> NLError {
     match code {
         ffi::status::INVALID_ARGUMENT => NLError::InvalidArgument(message),
         ffi::status::UNSUPPORTED => NLError::Unsupported(message),
+        ffi::status::TIMED_OUT => NLError::TimedOut(message),
         _ => NLError::Unknown { code, message },
     }
 }
@@ -51,4 +52,34 @@ pub unsafe fn decode_usize_array(array: *mut c_void, count: usize) -> Vec<usize>
     }
     ffi::nl_usizes_free(array, count);
     values
+}
+
+#[cfg(test)]
+mod tests {
+    use super::status_error;
+    use crate::{error::NLError, ffi};
+
+    #[test]
+    fn statuses_map_to_typed_errors() {
+        let null = core::ptr::null_mut();
+        assert_eq!(
+            status_error(ffi::status::INVALID_ARGUMENT, "bad", null),
+            NLError::InvalidArgument("bad".into())
+        );
+        assert_eq!(
+            status_error(ffi::status::UNSUPPORTED, "old", null),
+            NLError::Unsupported("old".into())
+        );
+        assert_eq!(
+            status_error(ffi::status::TIMED_OUT, "slow", null),
+            NLError::TimedOut("slow".into())
+        );
+        assert_eq!(
+            status_error(ffi::status::UNKNOWN, "odd", null),
+            NLError::Unknown {
+                code: ffi::status::UNKNOWN,
+                message: "odd".into()
+            }
+        );
+    }
 }
