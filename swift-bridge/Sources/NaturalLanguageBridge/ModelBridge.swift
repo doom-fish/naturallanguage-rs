@@ -18,6 +18,20 @@ private func nlModelType(_ raw: Int32) -> NLModel.ModelType {
     raw == 1 ? .sequence : .classifier
 }
 
+private final class NLCompiledModelDirectory {
+    let url: URL
+
+    init(_ url: URL) {
+        self.url = url
+    }
+
+    deinit {
+        try? FileManager.default.removeItem(at: url)
+    }
+}
+
+private var nlCompiledModelDirectoryKey: UInt8 = 0
+
 @_cdecl("nl_coreml_model_create_from_source_path")
 public func nl_coreml_model_create_from_source_path(
     _ path: UnsafePointer<CChar>?,
@@ -29,8 +43,11 @@ public func nl_coreml_model_create_from_source_path(
         return NL_INVALID_ARGUMENT
     }
     do {
-        let compiled = try MLModel.compileModel(at: URL(fileURLWithPath: String(cString: path)))
-        let model = try MLModel(contentsOf: compiled)
+        let compiled = NLCompiledModelDirectory(
+            try MLModel.compileModel(at: URL(fileURLWithPath: String(cString: path)))
+        )
+        let model = try MLModel(contentsOf: compiled.url)
+        objc_setAssociatedObject(model, &nlCompiledModelDirectoryKey, compiled, .OBJC_ASSOCIATION_RETAIN)
         outHandle.pointee = nlRetain(model)
         return NL_OK
     } catch {
