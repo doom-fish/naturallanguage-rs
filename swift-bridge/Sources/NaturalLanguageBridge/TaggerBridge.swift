@@ -2,20 +2,18 @@ import Foundation
 import NaturalLanguage
 
 private func taggerStringAndRange(_ tagger: NLTagger, _ range: NLTextRangeRaw) -> (String, Range<String.Index>)? {
-    guard let string = tagger.string else { return nil }
-    let ns = nsRange(from: range)
-    guard nlValidRange(ns, in: string), let swiftRange = Range(ns, in: string) else { return nil }
+    guard let string = tagger.string, let swiftRange = nlStringRange(range, in: string) else { return nil }
     return (string, swiftRange)
 }
 
 private func taggerTaggedSpans(
     _ tagger: NLTagger,
-    range: NLTextRangeRaw,
+    string: String,
+    range swiftRange: Range<String.Index>,
     unit: NLTokenUnit,
     scheme: NLTagScheme,
     options: NLTagger.Options
 ) -> [(NSRange, String, String?)] {
-    guard let (string, swiftRange) = taggerStringAndRange(tagger, range) else { return [] }
     var values: [(NSRange, String, String?)] = []
     tagger.enumerateTags(in: swiftRange, unit: unit, scheme: scheme, options: options) { tag, tokenRange in
         let ns = NSRange(tokenRange, in: string)
@@ -140,8 +138,8 @@ public func nl_tagger_token_range_for_range(
     _ outError: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
 ) -> Int32 {
     let range = NLTextRangeRaw(start: rangeStart, length: rangeLength)
-    guard let tagger: NLTagger = nlBorrow(handle), let outRange, let string = tagger.string,
-          let swiftRange = Range(nsRange(from: range), in: string) else {
+    guard let tagger: NLTagger = nlBorrow(handle), let outRange,
+          let (string, swiftRange) = taggerStringAndRange(tagger, range) else {
         nlSetError(outError, "invalid tagger handle or range")
         return NL_INVALID_ARGUMENT
     }
@@ -184,9 +182,17 @@ public func nl_tagger_tags_in_range(
         nlSetError(outError, "invalid tagger handle or scheme")
         return NL_INVALID_ARGUMENT
     }
+    guard let (string, swiftRange) = taggerStringAndRange(
+        tagger,
+        NLTextRangeRaw(start: rangeStart, length: rangeLength)
+    ) else {
+        nlSetError(outError, "tagger has no string or the range is out of bounds")
+        return NL_INVALID_ARGUMENT
+    }
     let spans = taggerTaggedSpans(
         tagger,
-        range: NLTextRangeRaw(start: rangeStart, length: rangeLength),
+        string: string,
+        range: swiftRange,
         unit: nlTokenUnit(unit),
         scheme: NLTagScheme(rawValue: String(cString: scheme)),
         options: NLTagger.Options(rawValue: UInt(options))
@@ -283,8 +289,8 @@ public func nl_tagger_set_language(
     _ outError: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
 ) -> Int32 {
     let range = NLTextRangeRaw(start: rangeStart, length: rangeLength)
-    guard let tagger: NLTagger = nlBorrow(handle), let language, let string = tagger.string,
-          let swiftRange = Range(nsRange(from: range), in: string) else {
+    guard let tagger: NLTagger = nlBorrow(handle), let language,
+          let (_, swiftRange) = taggerStringAndRange(tagger, range) else {
         nlSetError(outError, "invalid tagger handle or range")
         return NL_INVALID_ARGUMENT
     }
@@ -303,8 +309,8 @@ public func nl_tagger_set_orthography(
     _ outError: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
 ) -> Int32 {
     let range = NLTextRangeRaw(start: rangeStart, length: rangeLength)
-    guard let tagger: NLTagger = nlBorrow(handle), let string = tagger.string,
-          let swiftRange = Range(nsRange(from: range), in: string) else {
+    guard let tagger: NLTagger = nlBorrow(handle),
+          let (_, swiftRange) = taggerStringAndRange(tagger, range) else {
         nlSetError(outError, "invalid tagger handle or range")
         return NL_INVALID_ARGUMENT
     }

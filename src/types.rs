@@ -19,7 +19,7 @@ impl TextRange {
     /// UTF-16 end offset.
     #[must_use]
     pub const fn end(self) -> usize {
-        self.start + self.length
+        self.start.saturating_add(self.length)
     }
 
     /// Returns `true` when the range is empty.

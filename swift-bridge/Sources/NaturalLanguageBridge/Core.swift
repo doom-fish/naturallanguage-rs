@@ -174,8 +174,15 @@ func nlValidIndex(_ index: Int, in string: String?) -> Bool {
 @inline(__always)
 func nlValidRange(_ range: NSRange, in string: String?) -> Bool {
     guard let string else { return false }
-    let count = string.utf16.count
-    return range.location >= 0 && range.location <= count && range.length >= 0 && range.location + range.length <= count
+    let (end, overflow) = range.location.addingReportingOverflow(range.length)
+    return range.location >= 0 && range.length >= 0 && !overflow && end <= string.utf16.count
+}
+
+@inline(__always)
+func nlStringRange(_ range: NLTextRangeRaw, in string: String) -> Range<String.Index>? {
+    let ns = nsRange(from: range)
+    guard nlValidRange(ns, in: string) else { return nil }
+    return Range(ns, in: string)
 }
 
 @inline(__always)

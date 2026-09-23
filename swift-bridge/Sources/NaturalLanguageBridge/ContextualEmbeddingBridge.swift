@@ -360,7 +360,8 @@ public func nl_contextual_embedding_result_token_vectors_in_range(
 ) -> Int32 {
     if #available(macOS 14.0, *) {
         let range = NLTextRangeRaw(start: rangeStart, length: rangeLength)
-        guard let result = nlContextualEmbeddingResultObject(handle), let swiftRange = Range(nsRange(from: range), in: result.string) else {
+        guard let result = nlContextualEmbeddingResultObject(handle),
+              let swiftRange = nlStringRange(range, in: result.string) else {
             nlSetError(outError, "invalid contextual embedding result handle or range")
             return NL_INVALID_ARGUMENT
         }

@@ -149,6 +149,10 @@ public func nl_tokenizer_tokens_in_range(
         return NL_INVALID_ARGUMENT
     }
     let range = NLTextRangeRaw(start: rangeStart, length: rangeLength)
+    guard let string = tokenizer.string, nlStringRange(range, in: string) != nil else {
+        nlSetError(outError, "tokenizer has no string or the range is out of bounds")
+        return NL_INVALID_ARGUMENT
+    }
     let spans = tokenizerSpans(tokenizer, range: nsRange(from: range))
     guard !spans.isEmpty else {
         outArray.pointee = nil
