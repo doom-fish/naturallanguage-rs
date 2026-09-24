@@ -131,7 +131,7 @@ fn tokenizer_rejects_hostile_ranges() {
 
 #[test]
 fn contextual_embedding_rejects_hostile_ranges() -> Result<(), NLError> {
-    let embedding = match ContextualEmbedding::for_language(&Language::ENGLISH) {
+    let mut embedding = match ContextualEmbedding::for_language(&Language::ENGLISH) {
         Ok(Some(embedding)) => embedding,
         Ok(None) | Err(NLError::Unsupported(_)) => return Ok(()),
         Err(error) => return Err(error),

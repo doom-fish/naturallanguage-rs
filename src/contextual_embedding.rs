@@ -228,11 +228,7 @@ pub struct ContextualEmbedding {
     handle: NonNull<c_void>,
 }
 
-nl_retained!(
-    ContextualEmbedding,
-    retain = ffi::nl_object_retain,
-    release = ffi::nl_object_release,
-);
+nl_retained!(ContextualEmbedding, release = ffi::nl_object_release);
 
 // SAFETY: ContextualEmbedding wraps an Objective-C object handle from NaturalLanguage.framework,
 // which is thread-safe. Rust holds exclusive ownership of the handle, and the framework's
@@ -448,7 +444,7 @@ impl ContextualEmbedding {
         }
     }
 
-    pub fn load(&self) -> Result<(), NLError> {
+    pub fn load(&mut self) -> Result<(), NLError> {
         let mut error: *mut c_char = ptr::null_mut();
         let status =
             unsafe { ffi::nl_contextual_embedding_load(self.handle.as_ptr(), &raw mut error) };
@@ -463,7 +459,7 @@ impl ContextualEmbedding {
         }
     }
 
-    pub fn unload(&self) -> Result<(), NLError> {
+    pub fn unload(&mut self) -> Result<(), NLError> {
         let mut error: *mut c_char = ptr::null_mut();
         let status =
             unsafe { ffi::nl_contextual_embedding_unload(self.handle.as_ptr(), &raw mut error) };
@@ -562,12 +558,22 @@ impl ContextualEmbedding {
     #[cfg_attr(docsrs, doc(cfg(feature = "async")))]
     #[must_use]
     pub fn request_embedding_assets_async(&self) -> ContextualEmbeddingAssetsFuture {
-        let embedding = self.clone();
+        let embedding = NonNull::new(unsafe { ffi::nl_object_retain(self.handle.as_ptr()) })
+            .map(|handle| Self { handle });
         let (future, ctx) =
             AsyncCompletion::<Result<ContextualEmbeddingAssetsResult, NLError>>::create();
         let ctx = ctx as usize;
         std::thread::spawn(move || unsafe {
-            AsyncCompletion::complete_ok(ctx as *mut c_void, embedding.request_embedding_assets());
+            let result = embedding.map_or_else(
+                || {
+                    Err(NLError::Unknown {
+                        code: ffi::status::UNKNOWN,
+                        message: "failed to retain the contextual embedding".to_owned(),
+                    })
+                },
+                |embedding| embedding.request_embedding_assets(),
+            );
+            AsyncCompletion::complete_ok(ctx as *mut c_void, result);
         });
         ContextualEmbeddingAssetsFuture { inner: future }
     }

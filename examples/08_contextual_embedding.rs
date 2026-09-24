@@ -5,7 +5,7 @@
 use naturallanguage::prelude::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let Some(embedding) = ContextualEmbedding::for_language(&Language::ENGLISH)? else {
+    let Some(mut embedding) = ContextualEmbedding::for_language(&Language::ENGLISH)? else {
         println!("no contextual embedding available for English");
         return Ok(());
     };

@@ -14,7 +14,7 @@ fn contextual_embedding_catalogs_and_embeds_when_available() -> Result<(), Box<d
         Err(error) => return Err(error.into()),
     };
 
-    let embedding = match ContextualEmbedding::for_language(&Language::ENGLISH) {
+    let mut embedding = match ContextualEmbedding::for_language(&Language::ENGLISH) {
         Ok(Some(embedding)) => embedding,
         Ok(None) | Err(NLError::Unsupported(_)) => return Ok(()),
         Err(error) => return Err(error.into()),
@@ -72,5 +72,50 @@ fn contextual_embedding_catalogs_and_embeds_when_available() -> Result<(), Box<d
     assert_eq!(first.values.len(), dimension);
 
     embedding.unload()?;
+    Ok(())
+}
+
+#[cfg(feature = "async")]
+fn block_on<F: std::future::Future>(future: F) -> F::Output {
+    use std::sync::Arc;
+    use std::task::{Context, Poll, Wake, Waker};
+    use std::thread::{self, Thread};
+
+    struct ThreadWaker(Thread);
+
+    impl Wake for ThreadWaker {
+        fn wake(self: Arc<Self>) {
+            self.0.unpark();
+        }
+    }
+
+    let waker = Waker::from(Arc::new(ThreadWaker(thread::current())));
+    let mut cx = Context::from_waker(&waker);
+    let mut future = std::pin::pin!(future);
+    loop {
+        if let Poll::Ready(output) = future.as_mut().poll(&mut cx) {
+            return output;
+        }
+        thread::park();
+    }
+}
+
+#[cfg(feature = "async")]
+#[test]
+fn async_asset_request_reports_installed_assets() -> Result<(), Box<dyn Error>> {
+    let embedding = match ContextualEmbedding::for_language(&Language::ENGLISH) {
+        Ok(Some(embedding)) => embedding,
+        Ok(None) | Err(NLError::Unsupported(_)) => return Ok(()),
+        Err(error) => return Err(error.into()),
+    };
+    if !embedding.has_available_assets()? {
+        return Ok(());
+    }
+    let future = embedding.request_embedding_assets_async();
+    drop(embedding);
+    assert_eq!(
+        block_on(future)?,
+        ContextualEmbeddingAssetsResult::Available
+    );
     Ok(())
 }

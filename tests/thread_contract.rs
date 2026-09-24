@@ -12,6 +12,14 @@ impl<T: ?Sized> AmbiguousIfSync<()> for T {}
 
 impl<T: ?Sized + Sync> AmbiguousIfSync<u8> for T {}
 
+trait AmbiguousIfClone<A> {
+    fn assert_not_clone() {}
+}
+
+impl<T: ?Sized> AmbiguousIfClone<()> for T {}
+
+impl<T: Clone> AmbiguousIfClone<u8> for T {}
+
 const fn assert_send<T: Send>() {}
 
 #[test]
@@ -35,4 +43,11 @@ fn a_tokenizer_can_move_to_another_thread() {
         .join()
         .expect("tokenizer thread");
     assert_eq!(tokens.len(), 3);
+}
+
+#[cfg(feature = "contextual_embedding")]
+#[test]
+fn contextual_embeddings_are_not_shared_through_clone() {
+    <naturallanguage::ContextualEmbedding as AmbiguousIfClone<_>>::assert_not_clone();
+    assert_send::<naturallanguage::ContextualEmbedding>();
 }

@@ -40,6 +40,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** `Tagger::tags_in_range` and `Tokenizer::tokens_in_range` return
   `NLError::InvalidArgument` for an out-of-bounds range or a missing string instead
   of an empty list.
+- **Breaking:** `ContextualEmbedding` no longer implements `Clone`. A clone shared the
+  same framework object, so loading or unloading through one clone changed the
+  others. `load` and `unload` now take `&mut self`; use
+  `ContextualEmbedding::from_model_identifier` for an independent handle.
 - `rust-version` is 1.82 (was 1.76, which never compiled: `TagSpanRaw` derived
   `Default` over raw pointers, a Rust 1.88 feature; it now implements it by hand).
   `doom-fish-utils` is required at `>=0.4.1, <0.5`.
