@@ -93,6 +93,8 @@ The crate is validated with:
 - `for ex in examples/*.rs; do cargo run --example "$(basename "$ex" .rs)"; done`
 - `swift build --package-path swift-bridge -c release`
 
+Set `NATURALLANGUAGE_LIVE_TESTS=1` to also run the tagger asset request test, which may download language assets.
+
 ## Roadmap
 
 - [x] Full public header coverage for the current `NaturalLanguage.framework` SDK, with the audit published in [`COVERAGE.md`](COVERAGE.md)

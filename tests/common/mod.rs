@@ -59,3 +59,13 @@ pub fn compile_model(source: &Path, suite: &str) -> PathBuf {
     );
     compiled
 }
+
+pub fn live_tests_enabled(test: &str) -> bool {
+    let enabled = std::env::var("NATURALLANGUAGE_LIVE_TESTS").as_deref() == Ok("1");
+    if !enabled {
+        eprintln!(
+            "{test}: skipped; set NATURALLANGUAGE_LIVE_TESTS=1 to request assets that may download"
+        );
+    }
+    enabled
+}
