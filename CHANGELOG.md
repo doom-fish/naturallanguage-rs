@@ -123,6 +123,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `named_entities` no longer double-frees tag spans when decoding `NLTagger` results.
 
+## [0.2.0] - 2026-05-16
+
+### Added
+
+- Add `NLEmbedding` word and sentence vectors.
+
 ## [0.1.0] - Initial release
 
 ### Added
