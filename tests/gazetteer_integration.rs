@@ -32,7 +32,7 @@ fn gazetteer_roundtrips_and_tags_custom_names() -> Result<(), Box<dyn Error>> {
     );
 
     let data = gazetteer.data()?;
-    assert!(!data.is_empty());
+    assert_ne!(data, [] as [u8; 0]);
     let from_data = Gazetteer::from_data(&data)?;
     assert_eq!(
         from_data.label_for_string("Gotham")?,

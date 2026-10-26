@@ -21,7 +21,7 @@ fn contextual_embedding_catalogs_and_embeds_when_available() -> Result<(), Box<d
     };
 
     let model_identifier = embedding.model_identifier()?;
-    assert!(!model_identifier.is_empty());
+    assert_ne!(model_identifier, "");
     assert!(catalog.iter().any(|candidate| {
         candidate
             .model_identifier()
@@ -59,7 +59,7 @@ fn contextual_embedding_catalogs_and_embeds_when_available() -> Result<(), Box<d
     assert!(result.sequence_length() > 0);
 
     let token_vectors = result.token_vectors_in_range(full)?;
-    assert!(!token_vectors.is_empty());
+    assert_ne!(token_vectors, [] as [naturallanguage::TokenVector; 0]);
     assert_eq!(token_vectors.len(), result.sequence_length());
     assert!(token_vectors
         .iter()

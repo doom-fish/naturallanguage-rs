@@ -159,7 +159,10 @@ fn contextual_embedding_rejects_hostile_ranges() -> Result<(), NLError> {
         assert!(result.token_vector_at_index(index).is_err());
     }
     let full = TextRange::new(0, TEXT.encode_utf16().count());
-    assert!(!result.token_vectors_in_range(full)?.is_empty());
+    assert_ne!(
+        result.token_vectors_in_range(full)?,
+        [] as [naturallanguage::TokenVector; 0]
+    );
     embedding.unload()?;
     Ok(())
 }

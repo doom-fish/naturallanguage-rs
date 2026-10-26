@@ -36,6 +36,6 @@ fn embedding_exposes_vectors_distances_and_revisions() -> Result<(), Box<dyn Err
         .all(|neighbor| !neighbor.word.is_empty() && neighbor.distance >= 0.0));
 
     let vector_neighbors = embedding.neighbors_for_vector(&king_vector, 3, DistanceType::Cosine)?;
-    assert!(!vector_neighbors.is_empty());
+    assert_ne!(vector_neighbors, [] as [naturallanguage::Neighbor; 0]);
     Ok(())
 }

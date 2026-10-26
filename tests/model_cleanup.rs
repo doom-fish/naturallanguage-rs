@@ -27,7 +27,7 @@ fn compiled_source_models_are_removed_with_the_last_reference() -> Result<(), Bo
     let stem = format!("nl_cleanup_probe_{}_", std::process::id());
     let source = common::artifact_path("model_cleanup", &format!("{stem}.mlmodel"));
     fs::copy(common::asset_path("sentiment_classifier.mlmodel"), &source)?;
-    assert!(compiled_copies(&stem).is_empty());
+    assert_eq!(compiled_copies(&stem), [] as [std::path::PathBuf; 0]);
 
     let coreml = CoreMlModel::from_source_path(&source)?;
     assert_eq!(compiled_copies(&stem).len(), 1);
@@ -38,10 +38,10 @@ fn compiled_source_models_are_removed_with_the_last_reference() -> Result<(), Bo
         Some("positive".to_string())
     );
     drop(model);
-    assert!(compiled_copies(&stem).is_empty());
+    assert_eq!(compiled_copies(&stem), [] as [std::path::PathBuf; 0]);
 
     drop(CoreMlModel::from_source_path(&source)?);
-    assert!(compiled_copies(&stem).is_empty());
+    assert_eq!(compiled_copies(&stem), [] as [std::path::PathBuf; 0]);
     fs::remove_file(&source)?;
     Ok(())
 }

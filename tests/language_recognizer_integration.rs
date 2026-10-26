@@ -8,7 +8,7 @@ fn language_recognizer_tracks_hints_constraints_and_reset() -> Result<(), Box<dy
     assert_eq!(dominant_language(english_text)?, Some("en".to_string()));
 
     let hypotheses = language_hypotheses(english_text, 3)?;
-    assert!(!hypotheses.is_empty());
+    assert_ne!(hypotheses, [] as [naturallanguage::LanguageHypothesis; 0]);
     assert_eq!(hypotheses[0].language, Language::ENGLISH.as_str());
 
     let mut recognizer = LanguageRecognizer::new()?;
